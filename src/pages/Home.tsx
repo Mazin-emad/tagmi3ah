@@ -1,12 +1,16 @@
 import { Link } from "react-router-dom";
+import SearchSection from "@/components/global/home/SearchSection";
+import { ProductCard } from "@/components/global/ProductCard";
+import { products } from "@/lib/constants";
+
 const Home = () => {
   return (
     <main>
       <section className="bg-white dark:bg-gray-900">
         <div className="grid max-w-screen-xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16 lg:grid-cols-12">
           <div className="mr-auto place-self-center lg:col-span-7">
-            <h1 className="max-w-2xl mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl dark:text-white">
-              Stop Searching. Start Building.{" "}
+            <h1 className="max-w-2xl mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl text-primary">
+              Stop Searching. Start Building.
             </h1>
             <p className="max-w-2xl mb-6 font-light text-gray-500 lg:mb-8 md:text-lg lg:text-xl dark:text-gray-400">
               Our smart recommendation engine finds the best PC parts for your
@@ -24,9 +28,9 @@ const Home = () => {
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
-                  fill-rule="evenodd"
+                  fillRule="evenodd"
                   d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
-                  clip-rule="evenodd"
+                  clipRule="evenodd"
                 ></path>
               </svg>
             </Link>
@@ -46,13 +50,14 @@ const Home = () => {
           </div>
         </div>
       </section>
+      <SearchSection />
       <section>
-        <div className="grid max-w-screen-xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16">
-          <h2 className="mb-4 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
-            Products You'll Love
-          </h2>
-          <div className="flex"></div>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"></div>
+        <div className="grid max-w-screen-xl px-4 mx-auto lg:gap-8 xl:gap-0">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
         </div>
       </section>
     </main>

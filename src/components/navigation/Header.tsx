@@ -17,7 +17,6 @@ import {
 } from "@headlessui/react";
 import {
   Bars3Icon,
-  MagnifyingGlassIcon,
   ShoppingBagIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
@@ -216,7 +215,7 @@ export default function Example() {
             <div className="space-y-6 border-t border-gray-200 px-4 py-6">
               <div className="flow-root">
                 <a
-                  href="#"
+                  href="/signin"
                   className="-m-2 block p-2 font-medium text-gray-900"
                 >
                   Sign in
@@ -224,7 +223,7 @@ export default function Example() {
               </div>
               <div className="flow-root">
                 <a
-                  href="#"
+                  href="/signup"
                   className="-m-2 block p-2 font-medium text-gray-900"
                 >
                   Create account
@@ -236,11 +235,11 @@ export default function Example() {
               <a href="#" className="-m-2 flex items-center p-2">
                 <img
                   alt=""
-                  src="https://tailwindcss.com/plus-assets/img/flags/flag-canada.svg"
+                  src="src/assets/imgs/egypt-flag.svg"
                   className="block h-auto w-5 shrink-0"
                 />
                 <span className="ml-3 block text-base font-medium text-gray-900">
-                  CAD
+                  EGP
                 </span>
                 <span className="sr-only">, change currency</span>
               </a>
@@ -252,7 +251,7 @@ export default function Example() {
       <header className="relative bg-white">
         <p className="flex h-10 items-center justify-center bg-[#A9A9A9] px-4 text-sm font-medium text-white sm:px-6 lg:px-8">
           <span className="mr-2">Follow Us:</span>
-          <div className="flex items-center gap-2">
+          <span className="flex items-center gap-2">
             <a
               href="https://www.facebook.com"
               target="_blank"
@@ -270,7 +269,7 @@ export default function Example() {
             >
               <FaInstagram className="size-4" />
             </a>
-          </div>
+          </span>
         </p>
 
         <nav
@@ -429,17 +428,6 @@ export default function Example() {
                     />
                     <span className="ml-3 block text-sm font-medium">EGP</span>
                     <span className="sr-only">, change currency</span>
-                  </a>
-                </div>
-
-                {/* Search */}
-                <div className="flex lg:ml-6">
-                  <a href="#" className="p-2 text-gray-400 hover:text-gray-500">
-                    <span className="sr-only">Search</span>
-                    <MagnifyingGlassIcon
-                      aria-hidden="true"
-                      className="size-6"
-                    />
                   </a>
                 </div>
 
