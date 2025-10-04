@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import egyptFlagImage from "@/assets/imgs/Egypt-flag.svg";
+import logoImage from "@/assets/imgs/logo.png";
 import {
   Dialog,
   DialogBackdrop,
@@ -87,7 +89,7 @@ export default function Example() {
               <a href="#" className="-m-2 flex items-center p-2">
                 <img
                   alt="Egypt Flag"
-                  src="/src/assets/imgs/egypt-flag.svg"
+                  src={egyptFlagImage}
                   className="block h-auto w-5 shrink-0"
                 />
                 <span className="ml-3 block text-base font-medium text-gray-900">
@@ -123,7 +125,7 @@ export default function Example() {
                   <span className="sr-only">Tgmi3ah Store</span>
                   <img
                     alt="Tgmi3ah Store Logo"
-                    src="/src/assets/imgs/logo.png"
+                    src={logoImage}
                     className="h-8 w-auto"
                   />
                 </Link>
@@ -168,7 +170,7 @@ export default function Example() {
                   >
                     <img
                       alt="Egypt Flag"
-                      src="/src/assets/imgs/egypt-flag.svg"
+                      src={egyptFlagImage}
                       className="block h-auto w-5 shrink-0"
                     />
                     <span className="ml-3 block text-sm font-medium">EGP</span>

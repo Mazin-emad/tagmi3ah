@@ -3,6 +3,7 @@ import SearchSection from "@/components/global/home/SearchSection";
 import { ProductCard } from "@/components/global/ProductCard";
 import { products } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
+import heroImage from "@/assets/imgs/hero.jpg";
 
 const Home = () => {
   return (
@@ -44,7 +45,7 @@ const Home = () => {
           </div>
           <div className="hidden lg:mt-0 lg:col-span-5 lg:flex">
             <img
-              src="src/assets/imgs/hero.jpg"
+              src={heroImage}
               alt="mockup"
               className="w-full h-full object-cover rounded-lg"
             />
