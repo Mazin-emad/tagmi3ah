@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import SearchSection from "@/components/global/home/SearchSection";
 import { ProductCard } from "@/components/global/ProductCard";
 import { products } from "@/lib/constants";
+import { Button } from "@/components/ui/button";
 
 const Home = () => {
   return (
@@ -58,6 +59,17 @@ const Home = () => {
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
+        </div>
+        <div className="flex justify-center py-8">
+          <Button
+            variant="outline"
+            onClick={() => {
+              console.log("Load More");
+            }}
+            className="cursor-pointer hover:bg-primary px-8 text-lg hover:text-white hover:border-primary hover:shadow-md transition-all duration-300"
+          >
+            Load More
+          </Button>
         </div>
       </section>
     </main>

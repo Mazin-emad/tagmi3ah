@@ -87,3 +87,30 @@ export const products = [
     stock: 10,
   },
 ];
+
+export const categories = [
+  "CPU",
+  "GPU",
+  "Motherboard",
+  "RAM",
+  "Storage",
+  "Cooling",
+  "Power Supply",
+  "Case",
+  "Accessory",
+];
+
+export const brands = [
+  "AMD",
+  "Intel",
+  "NVIDIA",
+  "Corsair",
+  "Kingston",
+  "Samsung",
+  "Seagate",
+  "Western Digital",
+  "Logitech",
+  "Razer",
+  "HyperX",
+  "SteelSeries",
+];
