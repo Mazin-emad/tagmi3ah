@@ -14,7 +14,9 @@ import {
   ShoppingBagIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "../ui/button";
+import SideCart from "../global/cart/SideCart";
 
 const navigation = {
   categories: [],
@@ -25,8 +27,16 @@ const navigation = {
   ],
 };
 
-export default function Example() {
+export default function Header() {
   const [open, setOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+
+  const navigate = useNavigate();
+
+  const handleCartOpen = () => {
+    setCartOpen(true);
+    navigate("/checkout");
+  };
 
   return (
     <div className="bg-white">
@@ -180,7 +190,11 @@ export default function Example() {
 
                 {/* Cart */}
                 <div className="ml-4 flow-root lg:ml-6">
-                  <Link to="/cart" className="group -m-2 flex items-center p-2">
+                  <Button
+                    variant="ghost"
+                    className="group -m-2 flex items-center p-2"
+                    onClick={handleCartOpen}
+                  >
                     <ShoppingBagIcon
                       aria-hidden="true"
                       className="size-6 shrink-0 text-gray-400 group-hover:text-gray-500"
@@ -189,13 +203,14 @@ export default function Example() {
                       0
                     </span>
                     <span className="sr-only">items in cart, view bag</span>
-                  </Link>
+                  </Button>
                 </div>
               </div>
             </div>
           </div>
         </nav>
       </header>
+      <SideCart open={cartOpen} onClose={() => setCartOpen(false)} />
     </div>
   );
 }
