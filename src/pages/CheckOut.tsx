@@ -1,6 +1,6 @@
 const CheckOut = () => {
   return (
-    <div className="bg-purple-50 sm:px-8 px-4 py-6">
+    <div className="bg-primary/10 sm:px-8 px-4 py-6">
       <div className="max-w-screen-xl max-lg:max-w-xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-y-12 gap-8">
           <div className="max-w-4xl w-full h-max rounded-md">

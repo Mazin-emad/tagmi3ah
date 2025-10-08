@@ -8,11 +8,15 @@ import Builder from "./pages/Builder";
 import Contact from "./pages/Contact";
 import About from "./pages/About";
 import CheckOut from "./pages/CheckOut";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 
 const App = () => {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route index element={<Home />} />
         <Route path="/checkout" element={<CheckOut />} />
         <Route path="/products/:id" element={<Product />} />

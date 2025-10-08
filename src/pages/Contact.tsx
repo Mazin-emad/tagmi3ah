@@ -2,7 +2,7 @@ import { ChevronDownIcon } from "@heroicons/react/16/solid";
 
 export default function Contact() {
   return (
-    <div className="bg-background px-6 py-4 sm:py-12 lg:px-8">
+    <div className="bg-primary/10 px-6 py-4 sm:py-12 lg:px-8">
       <div className="mx-auto max-w-2xl text-center">
         <h2 className="text-4xl font-semibold tracking-tight text-balance text-foreground sm:text-5xl">
           Contact Us
