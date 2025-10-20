@@ -1,0 +1,26 @@
+.builderParent{
+    display: flex;
+    /* flex-wrap: wrap; */
+    justify-content: space-around;
+    padding: 20px;
+}
+.componentslist{
+    background-color: red;
+    margin-left: 20px;
+    display: flex;
+    max-width: 50vw;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+@media (min-width: 1087px){
+    .componentslist{
+    max-width: 70vw;}
+}
+@media (max-width:693px){
+    .componentslist{
+    max-width: 90vw;}
+    .side{
+        display: none;
+    }
+}
