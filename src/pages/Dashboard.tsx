@@ -5,7 +5,6 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-  CardFooter,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -14,23 +13,66 @@ import { Form } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { toast } from "sonner";
 import AddNewProduct from "@/components/global/dashboard/AddNewProduct";
+import { useUpdateMetadata, useMetadata } from "@/hooks";
+import { useEffect } from "react";
 
 const FormSchema = z.object({
-  brands: z.array(z.string()),
-  categories: z.array(z.string()),
+  categories: z.string(),
+  brands: z.string(),
 });
 
 const Dashboard = () => {
+  const { data: metadata } = useMetadata();
+  const { mutate: updateMetadata, isPending } = useUpdateMetadata();
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      brands: [],
-      categories: [],
+      brands: "",
+      categories: "",
     },
   });
+
+  // Update form when metadata is loaded
+  useEffect(() => {
+    if (metadata) {
+      form.setValue(
+        "categories",
+        metadata.categories?.join(", ") || ""
+      );
+      form.setValue("brands", metadata.brands?.join(", ") || "");
+    }
+  }, [metadata, form]);
+
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
-    console.log(data);
+    // Parse comma-separated strings into arrays
+    const categoriesArray = data.categories
+      .split(",")
+      .map((cat) => cat.trim())
+      .filter((cat) => cat.length > 0);
+    const brandsArray = data.brands
+      .split(",")
+      .map((brand) => brand.trim())
+      .filter((brand) => brand.length > 0);
+
+    updateMetadata(
+      {
+        categories: categoriesArray.length > 0 ? categoriesArray : undefined,
+        brands: brandsArray.length > 0 ? brandsArray : undefined,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Metadata updated successfully!");
+        },
+        onError: (error) => {
+          toast.error(
+            error?.message || "Failed to update metadata. Please try again."
+          );
+        },
+      }
+    );
   };
   return (
     <main>
@@ -63,19 +105,35 @@ const Dashboard = () => {
                       className="grid gap-6"
                     >
                       <div className="grid gap-3">
-                        <Label htmlFor="tabs-demo-current">Categories</Label>
-                        <Input id="tabs-demo-current" type="text" />
+                        <Label htmlFor="tabs-demo-categories">
+                          Categories (comma-separated)
+                        </Label>
+                        <Input
+                          id="tabs-demo-categories"
+                          type="text"
+                          placeholder="CPU, GPU, RAM, Storage..."
+                          {...form.register("categories")}
+                        />
                       </div>
                       <div className="grid gap-3">
-                        <Label htmlFor="tabs-demo-new">Brands</Label>
-                        <Input id="tabs-demo-new" type="text" />
+                        <Label htmlFor="tabs-demo-brands">
+                          Brands (comma-separated)
+                        </Label>
+                        <Input
+                          id="tabs-demo-brands"
+                          type="text"
+                          placeholder="AMD, Intel, NVIDIA, Corsair..."
+                          {...form.register("brands")}
+                        />
+                      </div>
+                      <div>
+                        <Button type="submit" disabled={isPending}>
+                          {isPending ? "Saving..." : "Save Metadata"}
+                        </Button>
                       </div>
                     </form>
                   </Form>
                 </CardContent>
-                <CardFooter>
-                  <Button type="submit">Save Metadata</Button>
-                </CardFooter>
               </Card>
             </TabsContent>
           </Tabs>

@@ -10,19 +10,51 @@ import About from "./pages/About";
 import CheckOut from "./pages/CheckOut";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import Profile from "./pages/Profile";
+import NotAuthenticatedOnly from "./components/auth/NotAuthenticatedOnly";
 
 const App = () => {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route
+          path="/login"
+          element={
+            <NotAuthenticatedOnly>
+              <Login />
+            </NotAuthenticatedOnly>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <NotAuthenticatedOnly>
+              <Register />
+            </NotAuthenticatedOnly>
+          }
+        />
         <Route index element={<Home />} />
         <Route path="/checkout" element={<CheckOut />} />
         <Route path="/products/:id" element={<Product />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute requireAdmin>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/builder" element={<Builder />} />
         <Route path="*" element={<NotFound />} />
       </Route>

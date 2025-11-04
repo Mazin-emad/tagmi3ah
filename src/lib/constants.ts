@@ -1,4 +1,6 @@
-export const products = [
+import type { Product } from "@/types";
+
+export const products: Product[] = [
   {
     id: "1",
     name: "AMD Ryzen 9 5900X",
@@ -88,7 +90,7 @@ export const products = [
   },
 ];
 
-export const categories = [
+export const categories: string[] = [
   "CPU",
   "GPU",
   "Motherboard",

@@ -13,10 +13,13 @@ import {
   Bars3Icon,
   ShoppingBagIcon,
   XMarkIcon,
+  UserIcon,
 } from "@heroicons/react/24/outline";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import SideCart from "../global/cart/SideCart";
+import { useMe, useLogout } from "@/hooks";
+import { toast } from "sonner";
 
 const navigation = {
   categories: [],
@@ -30,12 +33,25 @@ const navigation = {
 export default function Header() {
   const [open, setOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
-
+  const { data: user } = useMe();
+  const { mutate: logout } = useLogout();
   const navigate = useNavigate();
 
   const handleCartOpen = () => {
     setCartOpen(true);
     navigate("/checkout");
+  };
+
+  const handleLogout = () => {
+    logout(undefined, {
+      onSuccess: () => {
+        toast.success("Logged out successfully");
+        navigate("/");
+      },
+      onError: () => {
+        toast.error("Failed to logout");
+      },
+    });
   };
 
   return (
@@ -77,22 +93,58 @@ export default function Header() {
             </div>
 
             <div className="space-y-6 border-t border-gray-200 px-4 py-6">
-              <div className="flow-root">
-                <Link
-                  to="/login"
-                  className="-m-2 block p-2 font-medium text-gray-900"
-                >
-                  Sign in
-                </Link>
-              </div>
-              <div className="flow-root">
-                <Link
-                  to="/register"
-                  className="-m-2 block p-2 font-medium text-gray-900"
-                >
-                  Create account
-                </Link>
-              </div>
+              {user ? (
+                <>
+                  <div className="flow-root">
+                    <Link
+                      to="/profile"
+                      className="-m-2 block p-2 font-medium text-gray-900"
+                    >
+                      <div className="flex items-center gap-2">
+                        <UserIcon className="h-5 w-5" />
+                        <span>{user.name || user.email}</span>
+                      </div>
+                    </Link>
+                  </div>
+                  {user.roles?.includes("admin") && (
+                    <div className="flow-root">
+                      <Link
+                        to="/dashboard"
+                        className="-m-2 block p-2 font-medium text-gray-900"
+                      >
+                        Dashboard
+                      </Link>
+                    </div>
+                  )}
+                  <div className="flow-root">
+                    <button
+                      onClick={handleLogout}
+                      className="-m-2 block p-2 font-medium text-gray-900 w-full text-left"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flow-root">
+                    <Link
+                      to="/login"
+                      className="-m-2 block p-2 font-medium text-gray-900"
+                    >
+                      Sign in
+                    </Link>
+                  </div>
+                  <div className="flow-root">
+                    <Link
+                      to="/register"
+                      className="-m-2 block p-2 font-medium text-gray-900"
+                    >
+                      Create account
+                    </Link>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="border-t border-gray-200 px-4 py-6">
@@ -157,21 +209,51 @@ export default function Header() {
               </PopoverGroup>
 
               <div className="ml-auto flex items-center">
-                <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-end lg:space-x-6">
-                  <Link
-                    to="/login"
-                    className="text-sm font-medium text-gray-700 hover:text-gray-800"
-                  >
-                    Sign in
-                  </Link>
-                  <span aria-hidden="true" className="h-6 w-px bg-gray-200" />
-                  <Link
-                    to="/register"
-                    className="text-sm font-medium text-gray-700 hover:text-gray-800"
-                  >
-                    Create account
-                  </Link>
-                </div>
+                {user ? (
+                  <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-end lg:space-x-6">
+                    <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                      <UserIcon className="h-5 w-5" />
+                      <span>{user.name || user.email}</span>
+                    </div>
+                    {user.roles?.includes("admin") && (
+                      <>
+                        <span
+                          aria-hidden="true"
+                          className="h-6 w-px bg-gray-200"
+                        />
+                        <Link
+                          to="/dashboard"
+                          className="text-sm font-medium text-gray-700 hover:text-gray-800"
+                        >
+                          Dashboard
+                        </Link>
+                      </>
+                    )}
+                    <span aria-hidden="true" className="h-6 w-px bg-gray-200" />
+                    <button
+                      onClick={handleLogout}
+                      className="text-sm font-medium text-gray-700 hover:text-gray-800"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                ) : (
+                  <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-end lg:space-x-6">
+                    <Link
+                      to="/login"
+                      className="text-sm font-medium text-gray-700 hover:text-gray-800"
+                    >
+                      Sign in
+                    </Link>
+                    <span aria-hidden="true" className="h-6 w-px bg-gray-200" />
+                    <Link
+                      to="/register"
+                      className="text-sm font-medium text-gray-700 hover:text-gray-800"
+                    >
+                      Create account
+                    </Link>
+                  </div>
+                )}
 
                 <div className="hidden lg:ml-8 lg:flex">
                   <a

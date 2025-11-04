@@ -4,26 +4,32 @@ import {
   CardHeader,
   CardDescription,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
+import { useCreateProduct } from "@/hooks";
+import { toast } from "sonner";
+import { useState } from "react";
 
 const FormSchema = z.object({
-  name: z.string().min(1),
-  price: z.number().min(1),
-  description: z.string().min(1),
-  category: z.string().min(1),
-  brand: z.string().min(1),
-  stock: z.number().min(1),
-  image: z.string().optional() || z.instanceof(File).optional(),
+  name: z.string().min(1, "Name is required"),
+  price: z.number().min(0.01, "Price must be greater than 0"),
+  description: z.string().min(1, "Description is required"),
+  category: z.string().min(1, "Category is required"),
+  brand: z.string().min(1, "Brand is required"),
+  stock: z.number().min(0, "Stock cannot be negative"),
+  image: z.instanceof(File).optional().or(z.string().optional()),
 });
 
 const AddNewProduct = () => {
+  const { mutate: createProduct, isPending } = useCreateProduct();
+  const [imageFile, setImageFile] = useState<File | null>(null);
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -36,8 +42,39 @@ const AddNewProduct = () => {
       image: undefined,
     },
   });
+
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
-    console.log(data);
+    createProduct(
+      {
+        name: data.name,
+        price: data.price,
+        description: data.description,
+        category: data.category,
+        brand: data.brand,
+        stock: data.stock,
+        image: imageFile || undefined,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Product created successfully!");
+          form.reset();
+          setImageFile(null);
+        },
+        onError: (error) => {
+          toast.error(
+            error?.message || "Failed to create product. Please try again."
+          );
+        },
+      }
+    );
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      form.setValue("image", file);
+    }
   };
   return (
     <Card>
@@ -58,43 +95,53 @@ const AddNewProduct = () => {
               <Input id="tabs-demo-name" {...form.register("name")} />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="tabs-demo-username">Price</Label>
-              <Input id="tabs-demo-username" {...form.register("price")} />
+              <Label htmlFor="tabs-demo-price">Price</Label>
+              <Input
+                id="tabs-demo-price"
+                type="number"
+                {...form.register("price", { valueAsNumber: true })}
+              />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="tabs-demo-username">Description</Label>
+              <Label htmlFor="tabs-demo-description">Description</Label>
               <Input
-                id="tabs-demo-username"
+                id="tabs-demo-description"
                 {...form.register("description")}
               />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="tabs-demo-username">Category</Label>
-              <Input id="tabs-demo-username" {...form.register("category")} />
+              <Label htmlFor="tabs-demo-category">Category</Label>
+              <Input id="tabs-demo-category" {...form.register("category")} />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="tabs-demo-username">Brand</Label>
-              <Input id="tabs-demo-username" {...form.register("brand")} />
+              <Label htmlFor="tabs-demo-brand">Brand</Label>
+              <Input id="tabs-demo-brand" {...form.register("brand")} />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="tabs-demo-username">Stock</Label>
-              <Input id="tabs-demo-username" {...form.register("stock")} />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="tabs-demo-username">Image</Label>
+              <Label htmlFor="tabs-demo-stock">Stock</Label>
               <Input
-                id="tabs-demo-username"
+                id="tabs-demo-stock"
+                type="number"
+                {...form.register("stock", { valueAsNumber: true })}
+              />
+            </div>
+            <div className="grid gap-3">
+              <Label htmlFor="tabs-demo-image">Image</Label>
+              <Input
+                id="tabs-demo-image"
                 type="file"
                 accept="image/*"
-                {...form.register("image")}
+                onChange={handleImageChange}
               />
+            </div>
+            <div className="col-span-2">
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "Creating..." : "Add Product"}
+              </Button>
             </div>
           </form>
         </Form>
       </CardContent>
-      <CardFooter>
-        <Button type="submit">Add Product</Button>
-      </CardFooter>
     </Card>
   );
 };
