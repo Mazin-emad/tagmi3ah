@@ -12,7 +12,7 @@ import { Badge } from "../ui/badge";
 
 export const ProductCard = ({ product }: { product: Product }) => {
   const navigate = useNavigate();
-  // console.log(product)
+
   return (
     <Card>
       <CardHeader>

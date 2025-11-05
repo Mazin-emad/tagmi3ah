@@ -10,22 +10,32 @@ import {
   LockClosedIcon,
   EnvelopeIcon,
   PhoneIcon,
+  MapPinIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { useRegister } from "@/hooks";
+import { toast } from "sonner";
 
 // Form validation schema
 const registerSchema = z
   .object({
-    firstName: z.string().min(1, "First name is required"),
-    lastName: z.string().min(1, "Last name is required"),
+    name: z.string().min(2, "Name must be at least 2 characters"),
     email: z.string().email("Please enter a valid email address"),
-    phone: z
+    phoneNumber: z
       .string()
-      .min(10, "Phone number must be at least 10 digits")
-      .regex(/^[0-9]+$/, "Phone number must contain only digits"),
+      .optional()
+      .refine(
+        (val) =>
+          !val ||
+          /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/.test(
+            val
+          ),
+        "Please enter a valid phone number"
+      ),
+    address: z.string().optional(),
     password: z
       .string()
       .min(6, "Password must be at least 6 characters")
@@ -33,48 +43,54 @@ const registerSchema = z
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
         "Password must contain at least one uppercase letter, one lowercase letter, and one number"
       ),
-    confirmPassword: z.string().min(1, "Please confirm your password"),
+    passwordConfirm: z.string().min(1, "Please confirm your password"),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine((data) => data.password === data.passwordConfirm, {
     message: "Passwords don't match",
-    path: ["confirmPassword"],
+    path: ["passwordConfirm"],
   });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
-interface RegisterProps {
-  onRegister?: (data: RegisterFormData) => void;
-}
-
-export default function Register({ onRegister }: RegisterProps) {
+export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
+  const { mutate: register, isPending } = useRegister();
 
   const {
-    register,
+    register: registerField,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   });
 
-  const onSubmit = async (data: RegisterFormData) => {
-    try {
-      // Call the onRegister prop if provided, otherwise handle default register logic
-      if (onRegister) {
-        onRegister(data);
-      } else {
-        // Default register logic - you can replace this with your actual registration
-        console.log("Register data:", data);
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        // Navigate to login page after successful registration
-        navigate("/login");
+  const onSubmit = (data: RegisterFormData) => {
+    register(
+      {
+        email: data.email,
+        password: data.password,
+        name: data.name,
+        phoneNumber: data.phoneNumber,
+        address: data.address,
+        emailConfirm: data.email,
+        passwordConfirm: data.passwordConfirm,
+      },
+      {
+        onSuccess: () => {
+          toast.success(
+            "Account created successfully! Please check your email to confirm your account."
+          );
+          navigate("/login");
+        },
+        onError: (error) => {
+          toast.error(
+            error?.message || "Registration failed. Please try again."
+          );
+        },
       }
-    } catch (error) {
-      console.error("Registration error:", error);
-    }
+    );
   };
 
   const handleBackToLogin = () => {
@@ -109,52 +125,27 @@ export default function Register({ onRegister }: RegisterProps) {
             <CardContent>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid sm:grid-cols-2 gap-6">
-                  {/* First Name Field */}
+                  {/* Name Field */}
                   <div className="space-y-2">
                     <Label
-                      htmlFor="firstName"
+                      htmlFor="name"
                       className="text-slate-900 text-sm font-medium"
                     >
-                      First Name
+                      Full Name <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
                       <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
-                        id="firstName"
+                        id="name"
                         type="text"
-                        placeholder="Enter your first name"
+                        placeholder="Enter your full name"
                         className="pl-10"
-                        {...register("firstName")}
+                        {...registerField("name")}
                       />
                     </div>
-                    {errors.firstName && (
+                    {errors.name && (
                       <p className="text-sm text-red-600">
-                        {errors.firstName.message}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Last Name Field */}
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="lastName"
-                      className="text-slate-900 text-sm font-medium"
-                    >
-                      Last Name
-                    </Label>
-                    <div className="relative">
-                      <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="lastName"
-                        type="text"
-                        placeholder="Enter your last name"
-                        className="pl-10"
-                        {...register("lastName")}
-                      />
-                    </div>
-                    {errors.lastName && (
-                      <p className="text-sm text-red-600">
-                        {errors.lastName.message}
+                        {errors.name.message}
                       </p>
                     )}
                   </div>
@@ -165,7 +156,7 @@ export default function Register({ onRegister }: RegisterProps) {
                       htmlFor="email"
                       className="text-slate-900 text-sm font-medium"
                     >
-                      Email Address
+                      Email Address <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
                       <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -174,7 +165,7 @@ export default function Register({ onRegister }: RegisterProps) {
                         type="email"
                         placeholder="Enter your email"
                         className="pl-10"
-                        {...register("email")}
+                        {...registerField("email")}
                       />
                     </div>
                     {errors.email && (
@@ -184,27 +175,52 @@ export default function Register({ onRegister }: RegisterProps) {
                     )}
                   </div>
 
-                  {/* Phone Field */}
+                  {/* Phone Number Field */}
                   <div className="space-y-2">
                     <Label
-                      htmlFor="phone"
+                      htmlFor="phoneNumber"
                       className="text-slate-900 text-sm font-medium"
                     >
-                      Mobile Number
+                      Phone Number
                     </Label>
                     <div className="relative">
                       <PhoneIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
-                        id="phone"
+                        id="phoneNumber"
                         type="tel"
-                        placeholder="Enter your mobile number"
+                        placeholder="+20 123 456 7890"
                         className="pl-10"
-                        {...register("phone")}
+                        {...registerField("phoneNumber")}
                       />
                     </div>
-                    {errors.phone && (
+                    {errors.phoneNumber && (
                       <p className="text-sm text-red-600">
-                        {errors.phone.message}
+                        {errors.phoneNumber.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Address Field */}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="address"
+                      className="text-slate-900 text-sm font-medium"
+                    >
+                      Address
+                    </Label>
+                    <div className="relative">
+                      <MapPinIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="address"
+                        type="text"
+                        placeholder="Enter your address"
+                        className="pl-10"
+                        {...registerField("address")}
+                      />
+                    </div>
+                    {errors.address && (
+                      <p className="text-sm text-red-600">
+                        {errors.address.message}
                       </p>
                     )}
                   </div>
@@ -215,7 +231,7 @@ export default function Register({ onRegister }: RegisterProps) {
                       htmlFor="password"
                       className="text-slate-900 text-sm font-medium"
                     >
-                      Password
+                      Password <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
                       <LockClosedIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -224,12 +240,15 @@ export default function Register({ onRegister }: RegisterProps) {
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
                         className="pl-10 pr-12"
-                        {...register("password")}
+                        {...registerField("password")}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        aria-label={
+                          showPassword ? "Hide password" : "Show password"
+                        }
                       >
                         {showPassword ? (
                           <EyeSlashIcon className="h-4 w-4" />
@@ -243,31 +262,40 @@ export default function Register({ onRegister }: RegisterProps) {
                         {errors.password.message}
                       </p>
                     )}
+                    <p className="text-xs text-gray-500">
+                      Must be at least 6 characters with uppercase, lowercase,
+                      and a number
+                    </p>
                   </div>
 
                   {/* Confirm Password Field */}
                   <div className="space-y-2">
                     <Label
-                      htmlFor="confirmPassword"
+                      htmlFor="passwordConfirm"
                       className="text-slate-900 text-sm font-medium"
                     >
-                      Confirm Password
+                      Confirm Password <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
                       <LockClosedIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
-                        id="confirmPassword"
+                        id="passwordConfirm"
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder="Confirm your password"
                         className="pl-10 pr-12"
-                        {...register("confirmPassword")}
+                        {...registerField("passwordConfirm")}
                       />
                       <button
                         type="button"
                         onClick={() =>
                           setShowConfirmPassword(!showConfirmPassword)
                         }
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        aria-label={
+                          showConfirmPassword
+                            ? "Hide password"
+                            : "Show password"
+                        }
                       >
                         {showConfirmPassword ? (
                           <EyeSlashIcon className="h-4 w-4" />
@@ -276,9 +304,9 @@ export default function Register({ onRegister }: RegisterProps) {
                         )}
                       </button>
                     </div>
-                    {errors.confirmPassword && (
+                    {errors.passwordConfirm && (
                       <p className="text-sm text-red-600">
-                        {errors.confirmPassword.message}
+                        {errors.passwordConfirm.message}
                       </p>
                     )}
                   </div>
@@ -288,11 +316,11 @@ export default function Register({ onRegister }: RegisterProps) {
                 <div className="mt-8 text-center">
                   <Button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isPending}
                     className="cursor-pointer py-3 text-base font-medium"
                     size="lg"
                   >
-                    {isSubmitting ? "Creating Account..." : "Sign up"}
+                    {isPending ? "Creating Account..." : "Sign up"}
                   </Button>
                 </div>
 

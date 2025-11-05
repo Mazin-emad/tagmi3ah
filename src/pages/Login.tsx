@@ -6,7 +6,7 @@ import { useNavigate, Link } from "react-router-dom";
 import {
   EyeIcon,
   EyeSlashIcon,
-  UserIcon,
+  EnvelopeIcon,
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
@@ -14,28 +14,27 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { useLogin } from "@/hooks";
+import { toast } from "sonner";
 
 // Form validation schema
 const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
   rememberMe: z.boolean().optional(),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-interface LoginProps {
-  onLogin?: (data: LoginFormData) => void;
-}
-
-export default function Login({ onLogin }: LoginProps) {
+export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const { mutate: login, isPending } = useLogin();
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -43,22 +42,25 @@ export default function Login({ onLogin }: LoginProps) {
     },
   });
 
-  const onSubmit = async (data: LoginFormData) => {
-    try {
-      // Call the onLogin prop if provided, otherwise handle default login logic
-      if (onLogin) {
-        onLogin(data);
-      } else {
-        // Default login logic - you can replace this with your actual authentication
-        console.log("Login data:", data);
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        // Navigate to dashboard or home page
-        navigate("/dashboard");
+  const onSubmit = (data: LoginFormData) => {
+    login(
+      {
+        email: data.email,
+        password: data.password,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Logged in successfully!");
+          // Navigate to dashboard or previous page
+          navigate("/dashboard");
+        },
+        onError: (error) => {
+          toast.error(
+            error?.message || "Login failed. Please check your credentials."
+          );
+        },
       }
-    } catch (error) {
-      console.error("Login error:", error);
-    }
+    );
   };
 
   const handleForgotPassword = () => {
@@ -67,7 +69,6 @@ export default function Login({ onLogin }: LoginProps) {
   };
 
   const handleRegister = () => {
-    // Navigate to register page
     navigate("/register");
   };
 
@@ -93,27 +94,27 @@ export default function Login({ onLogin }: LoginProps) {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                {/* Username Field */}
+                {/* Email Field */}
                 <div className="space-y-2">
                   <Label
-                    htmlFor="username"
+                    htmlFor="email"
                     className="text-slate-900 text-sm font-medium"
                   >
-                    Username
+                    Email
                   </Label>
                   <div className="relative">
-                    <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
-                      id="username"
-                      type="text"
-                      placeholder="Enter your username"
+                      id="email"
+                      type="email"
+                      placeholder="Enter your email"
                       className="pl-10 pr-4 py-3"
-                      {...register("username")}
+                      {...register("email")}
                     />
                   </div>
-                  {errors.username && (
+                  {errors.email && (
                     <p className="text-sm text-red-600">
-                      {errors.username.message}
+                      {errors.email.message}
                     </p>
                   )}
                 </div>
@@ -177,11 +178,11 @@ export default function Login({ onLogin }: LoginProps) {
                 {/* Submit Button */}
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isPending}
                   className="w-full py-3 text-base font-medium"
                   size="lg"
                 >
-                  {isSubmitting ? "Signing in..." : "Sign in"}
+                  {isPending ? "Signing in..." : "Sign in"}
                 </Button>
 
                 {/* Register Link */}

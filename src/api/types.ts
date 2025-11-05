@@ -1,0 +1,191 @@
+/**
+ * Core API error type
+ */
+export interface ApiError {
+  status: number;
+  message: string;
+  details?: unknown;
+}
+
+/**
+ * Authentication Error - thrown for 401/403 responses
+ */
+export class AuthError extends Error {
+  status: number;
+  payload?: unknown;
+
+  constructor(message: string, status: number = 401, payload?: unknown) {
+    super(message);
+    this.name = "AuthError";
+    this.status = status;
+    this.payload = payload;
+    Object.setPrototypeOf(this, AuthError.prototype);
+  }
+}
+
+// ============================================================================
+// AUTH DTOs
+// ============================================================================
+
+export interface AuthRegisterRequest {
+  email: string;
+  password: string;
+  emailConfirm: string;
+  passwordConfirm: string;
+  phoneNumber?: string;
+  address?: string;
+  name?: string;
+}
+
+export interface AuthRegisterResponse {
+  id: string;
+  email: string;
+  name?: string;
+  phoneNumber?: string;
+  address?: string;
+  role?: string[];
+}
+
+export interface AuthLoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface AuthLoginResponse {
+  success: boolean;
+  user: {
+    id: string;
+    email: string;
+    name?: string;
+    phoneNumber?: string;
+    address?: string;
+    role?: string[];
+  };
+}
+
+export interface AuthConfirmResponse {
+  success: boolean;
+  message?: string;
+}
+
+export interface AuthForgotPasswordRequest {
+  email: string;
+}
+
+export interface AuthForgotPasswordResponse {
+  success: boolean;
+  message?: string;
+}
+
+export interface AuthRequireConfirmRequest {
+  email: string;
+}
+
+export interface AuthRequireConfirmResponse {
+  success: boolean;
+  message?: string;
+}
+
+export interface AuthResetPasswordRequest {
+  newPassword: string;
+}
+
+export interface AuthResetPasswordResponse {
+  success: boolean;
+  message?: string;
+}
+
+export interface LogoutResponse {
+  success: boolean;
+}
+
+// ============================================================================
+// USER DTOs
+// ============================================================================
+
+export interface MeResponse {
+  id: string;
+  email: string;
+  name?: string;
+  phoneNumber?: string;
+  address?: string;
+  role?: string[];
+}
+
+export type AllUsersResponse = MeResponse[];
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordResponse {
+  success: boolean;
+  message?: string;
+}
+
+export interface UpdateMeRequest {
+  name: string;
+  phoneNumber: string;
+  address: string;
+}
+
+export interface UpdateMeResponse {
+  name: string;
+  phoneNumber: string;
+  address: string;
+}
+
+// ============================================================================
+// PRODUCT DTOs
+// ============================================================================
+
+export interface Product {
+  id: string;
+  name: string;
+  image: string;
+  price: number;
+  description: string;
+  category: string;
+  brand: string;
+  stock: number;
+}
+
+export interface CreateProductRequest {
+  name: string;
+  price: number;
+  description: string;
+  category: string;
+  brand: string;
+  stock: number;
+  image?: File | string;
+}
+
+export interface CreateProductResponse {
+  id: string;
+  name: string;
+  image: string;
+  price: number;
+  description: string;
+  category: string;
+  brand: string;
+  stock: number;
+}
+
+export type ProductsResponse = Product[];
+
+// ============================================================================
+// METADATA DTOs
+// ============================================================================
+
+export interface UpdateMetadataRequest {
+  categories?: string[];
+  brands?: string[];
+}
+
+export interface UpdateMetadataResponse {
+  success: boolean;
+  message?: string;
+  categories?: string[];
+  brands?: string[];
+}

@@ -26,7 +26,7 @@ const FormSchema = z.object({
   image: z.instanceof(File).optional().or(z.string().optional()),
 });
 
-const AddNewProduct = () => {
+export default function ProductForm() {
   const { mutate: createProduct, isPending } = useCreateProduct();
   const [imageFile, setImageFile] = useState<File | null>(null);
 
@@ -76,6 +76,7 @@ const AddNewProduct = () => {
       form.setValue("image", file);
     }
   };
+
   return (
     <Card>
       <CardHeader>
@@ -91,44 +92,44 @@ const AddNewProduct = () => {
             className="grid gap-6 grid-cols-2"
           >
             <div className="grid gap-3">
-              <Label htmlFor="tabs-demo-name">Name</Label>
-              <Input id="tabs-demo-name" {...form.register("name")} />
+              <Label htmlFor="product-name">Name</Label>
+              <Input id="product-name" {...form.register("name")} />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="tabs-demo-price">Price</Label>
+              <Label htmlFor="product-price">Price</Label>
               <Input
-                id="tabs-demo-price"
+                id="product-price"
                 type="number"
                 {...form.register("price", { valueAsNumber: true })}
               />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="tabs-demo-description">Description</Label>
+              <Label htmlFor="product-description">Description</Label>
               <Input
-                id="tabs-demo-description"
+                id="product-description"
                 {...form.register("description")}
               />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="tabs-demo-category">Category</Label>
-              <Input id="tabs-demo-category" {...form.register("category")} />
+              <Label htmlFor="product-category">Category</Label>
+              <Input id="product-category" {...form.register("category")} />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="tabs-demo-brand">Brand</Label>
-              <Input id="tabs-demo-brand" {...form.register("brand")} />
+              <Label htmlFor="product-brand">Brand</Label>
+              <Input id="product-brand" {...form.register("brand")} />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="tabs-demo-stock">Stock</Label>
+              <Label htmlFor="product-stock">Stock</Label>
               <Input
-                id="tabs-demo-stock"
+                id="product-stock"
                 type="number"
                 {...form.register("stock", { valueAsNumber: true })}
               />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="tabs-demo-image">Image</Label>
+              <Label htmlFor="product-image">Image</Label>
               <Input
-                id="tabs-demo-image"
+                id="product-image"
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
@@ -144,6 +145,5 @@ const AddNewProduct = () => {
       </CardContent>
     </Card>
   );
-};
+}
 
-export default AddNewProduct;
