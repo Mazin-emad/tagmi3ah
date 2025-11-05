@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 import CardActionArea from '@mui/material/CardActionArea';
 
 export default function MainCard({img}:{img:any}) {
-    console.log(img.img)
+    //console.log(img.img)
   return (
     <Card sx={{ maxWidth: 345,maxHeight:345 }}>
       <CardActionArea>

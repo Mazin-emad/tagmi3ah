@@ -1,13 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { myItemsContext } from '@/Context/myItems'
+import { myItemsContext } from '../../Context/myItems'
 // import { Motherboards } from '@/lib/constants';
 import { useContext } from 'react'
 export default function Sidebar() {
-    const context = useContext(myItemsContext);
-    const { setcurrentshow, items,setItems,setSocket,setramtype } = context;
+    const { setcurrentshow, items,setItems,setSocket,setramtype } = useContext(myItemsContext);
+
+
+    // handeler functions
     function removeItem(product:any){
      // setItems((prev: Record<string, any>) => ({ ...prev, [currentshow]: undefined }));
-     console.log(product)
+     // console.log(product)
     //  console.log(currentshow)
      if(product.category === "CPU"){
       //let previtems=Object.keys(items).filter((item:any)=>item!="CPU")
@@ -19,15 +21,20 @@ export default function Sidebar() {
     }
     if(product.category === "Motherboard"){
     //  let previtems=Object.keys(items).filter((item:any)=>item!="Motherboard")
-      setItems((prev:any)=>({...prev,Motherboard:undefined}))
-      setSocket((prev:any)=>({...prev,msocket:'all'}))
+      setItems((prev)=>({...prev,Motherboard:undefined}))
+      setSocket((prev)=>({...prev,msocket:'all'}))
       if(items.CPU==undefined){
         setramtype('all')
+      }
+    }else if(product.category=='RAM'){
+      setItems((prev:any)=>({...prev,RAM:undefined}))
+      if(items.Motherboard==undefined&&items.CPU==undefined){
+      setramtype('all')
       }
     }else{
       setItems((prev:any)=>({...prev,[product.category]:undefined}))
     }
-    console.log(items)
+   // console.log(items)
     }
   return (
     <aside className="sticky top-6 hidden md:block">

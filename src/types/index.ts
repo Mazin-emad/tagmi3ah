@@ -9,5 +9,6 @@ export interface Product {
   stock: number;
   socket?: string;
   ramType?: string;
+  type?:string;
   supportedMemoryTypes?: string[];
 }

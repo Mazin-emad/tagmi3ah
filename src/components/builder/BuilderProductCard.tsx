@@ -13,7 +13,7 @@ import { useContext } from "react";
 import { myItemsContext } from "@/Context/myItems";
 
 export function BuilderProductCard({ product }: { product: Product }) {
-  const { setItems,setSocket,setramtype,items } = useContext(myItemsContext);
+  const { setItems,setSocket,setramtype,items,ramtype } = useContext(myItemsContext);
 
   const handleSelect = () => {
     setItems((prev: Record<string, any>) => ({ ...prev, [product.category]: product }));
@@ -21,7 +21,7 @@ export function BuilderProductCard({ product }: { product: Product }) {
     if(product.category === "CPU" ){
       setSocket((prev) => ({ ...prev, psocket: product.socket ?? 'all' }));
       if(product.supportedMemoryTypes?.length ==1){
-        console.log("supportedMemoryTypes",product.supportedMemoryTypes)
+      //  console.log("supportedMemoryTypes",product.supportedMemoryTypes)
         setramtype(()=>{return product.supportedMemoryTypes?.[0]??'all'});
       }else{
         setramtype('all')
@@ -32,7 +32,10 @@ export function BuilderProductCard({ product }: { product: Product }) {
     }
     if(product.category === "RAM"){
       if(items.CPU==undefined && items.Motherboard==undefined){
-        setramtype(product.ramType ?? 'all');
+        setramtype(product.type ?? 'all');
+       // console.log(product.type)
+       // console.log(ramtype);
+       // console.log("hereeeeeeee",items)
       }
     }
   };
