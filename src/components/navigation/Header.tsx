@@ -95,10 +95,11 @@ export default function Header() {
             <div className="space-y-6 border-t border-gray-200 px-4 py-6">
               {user ? (
                 <>
+                  {/* User name with link to profile - shown for all authenticated users */}
                   <div className="flow-root">
                     <Link
                       to="/profile"
-                      className="-m-2 block p-2 font-medium text-gray-900"
+                      className="-m-2 block p-2 font-medium text-gray-900 hover:text-gray-700"
                     >
                       <div className="flex items-center gap-2">
                         <UserIcon className="h-5 w-5" />
@@ -106,11 +107,12 @@ export default function Header() {
                       </div>
                     </Link>
                   </div>
-                  {user.roles?.includes("admin") && (
+                  {/* Dashboard link - shown only for admins */}
+                  {user.role?.includes("ADMIN") && (
                     <div className="flow-root">
                       <Link
                         to="/dashboard"
-                        className="-m-2 block p-2 font-medium text-gray-900"
+                        className="-m-2 block p-2 font-medium text-gray-900 hover:text-gray-700"
                       >
                         Dashboard
                       </Link>
@@ -119,7 +121,7 @@ export default function Header() {
                   <div className="flow-root">
                     <button
                       onClick={handleLogout}
-                      className="-m-2 block p-2 font-medium text-gray-900 w-full text-left"
+                      className="-m-2 block p-2 font-medium text-gray-900 hover:text-gray-700 w-full text-left"
                     >
                       Sign out
                     </button>
@@ -211,16 +213,18 @@ export default function Header() {
               <div className="ml-auto flex items-center">
                 {user ? (
                   <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-end lg:space-x-6">
-                    <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                    {/* User name with link to profile - shown for all authenticated users */}
+                    <Link
+                      to="/profile"
+                      className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-800"
+                    >
                       <UserIcon className="h-5 w-5" />
                       <span>{user.name || user.email}</span>
-                    </div>
-                    {user.roles?.includes("admin") && (
+                    </Link>
+                    {/* Dashboard link - shown only for admins */}
+                    {user.role?.includes("ADMIN") && (
                       <>
-                        <span
-                          aria-hidden="true"
-                          className="h-6 w-px bg-gray-200"
-                        />
+                        <span aria-hidden="true" className="h-6 w-px bg-gray-200" />
                         <Link
                           to="/dashboard"
                           className="text-sm font-medium text-gray-700 hover:text-gray-800"

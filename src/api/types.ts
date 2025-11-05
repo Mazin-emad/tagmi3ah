@@ -30,6 +30,8 @@ export class AuthError extends Error {
 export interface AuthRegisterRequest {
   email: string;
   password: string;
+  emailConfirm: string;
+  passwordConfirm: string;
   phoneNumber?: string;
   address?: string;
   name?: string;
@@ -41,7 +43,7 @@ export interface AuthRegisterResponse {
   name?: string;
   phoneNumber?: string;
   address?: string;
-  roles?: string[];
+  role?: string[];
 }
 
 export interface AuthLoginRequest {
@@ -57,7 +59,7 @@ export interface AuthLoginResponse {
     name?: string;
     phoneNumber?: string;
     address?: string;
-    roles?: string[];
+    role?: string[];
   };
 }
 
@@ -107,7 +109,7 @@ export interface MeResponse {
   name?: string;
   phoneNumber?: string;
   address?: string;
-  roles?: string[];
+  role?: string[];
 }
 
 export type AllUsersResponse = MeResponse[];

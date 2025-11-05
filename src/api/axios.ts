@@ -1,5 +1,6 @@
 import axios, { type AxiosInstance, type AxiosError } from "axios";
 import { toApiError } from "./errors";
+import { clearAuthCookie } from "./authUtils";
 
 /**
  * Get API base URL from environment variable
@@ -37,13 +38,25 @@ apiClient.interceptors.request.use(
 
 /**
  * Response interceptor: Converts Axios errors to typed ApiError
- * Throws AuthError for 401/403 responses
+ * Clears JWT cookie client-side on 401/403 (no need to call logout endpoint)
  */
 apiClient.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error: AxiosError) => {
+  async (error: AxiosError) => {
+    // Check if this is an auth error (401/403)
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      const url = error.config?.url || "";
+      // Don't clear cookie if we're already calling logout endpoint
+      // (401/403 on logout means cookie is already invalid/missing)
+      if (!url.includes("/auth/logout")) {
+        // Just delete cookie client-side - if we got 401/403, 
+        // the cookie is likely already invalid or missing
+        clearAuthCookie();
+      }
+    }
+
     // Convert to ApiError (which may throw AuthError for 401/403)
     const apiError = toApiError(error);
 
@@ -54,4 +67,3 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
-

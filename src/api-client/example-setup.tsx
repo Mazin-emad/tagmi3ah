@@ -1,6 +1,6 @@
 /**
  * Example: How to integrate QueryClientProvider into your app
- * 
+ *
  * Copy this code into your main.tsx or App.tsx to set up React Query
  */
 
@@ -9,8 +9,8 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import App from "./App.tsx";
-import "./index.css";
+import App from "@/App";
+import "@/index.css";
 
 // Create a QueryClient with sensible defaults
 const queryClient = new QueryClient({
@@ -41,8 +41,7 @@ createRoot(document.getElementById("root")!).render(
 /**
  * To use React Query DevTools, install:
  * npm install @tanstack/react-query-devtools
- * 
+ *
  * The DevTools will appear as a floating icon in the bottom corner
  * when running in development mode.
  */
-

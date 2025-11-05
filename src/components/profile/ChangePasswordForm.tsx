@@ -15,11 +15,22 @@ import { useForm } from "react-hook-form";
 import { useChangeMyPassword } from "@/hooks";
 import { toast } from "sonner";
 
-const FormSchema = z.object({
-  currentPassword: z.string().min(1, "Current password is required"),
-  newPassword: z.string().min(1, "New password is required"),
-  confirmPassword: z.string().min(1, "Confirm password is required"),
-});
+const FormSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: z
+      .string()
+      .min(6, "Password must be at least 6 characters")
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+        "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+      ),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
 const ChangePasswordForm = () => {
   const { mutate: changePassword, isPending } = useChangeMyPassword();
@@ -70,8 +81,14 @@ const ChangePasswordForm = () => {
               <Label htmlFor="currentPassword">Current Password</Label>
               <Input
                 id="currentPassword"
+                type="password"
                 {...form.register("currentPassword")}
               />
+              {form.formState.errors.currentPassword && (
+                <p className="text-sm text-red-600">
+                  {form.formState.errors.currentPassword.message}
+                </p>
+              )}
             </div>
             <div className="grid gap-3">
               <Label htmlFor="newPassword">New Password</Label>
@@ -80,6 +97,11 @@ const ChangePasswordForm = () => {
                 type="password"
                 {...form.register("newPassword")}
               />
+              {form.formState.errors.newPassword && (
+                <p className="text-sm text-red-600">
+                  {form.formState.errors.newPassword.message}
+                </p>
+              )}
             </div>
             <div className="grid gap-3">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
@@ -88,6 +110,11 @@ const ChangePasswordForm = () => {
                 type="password"
                 {...form.register("confirmPassword")}
               />
+              {form.formState.errors.confirmPassword && (
+                <p className="text-sm text-red-600">
+                  {form.formState.errors.confirmPassword.message}
+                </p>
+              )}
             </div>
             <div className="grid gap-3">
               <Button type="submit" disabled={isPending}>

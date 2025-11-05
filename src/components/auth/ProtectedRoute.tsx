@@ -50,7 +50,7 @@ export default function ProtectedRoute({
 
   // Check admin requirement
   if (requireAdmin) {
-    const isAdmin = user.roles?.includes("admin") ?? false;
+    const isAdmin = user.role?.includes("ADMIN") ?? false;
     if (!isAdmin) {
       return <Navigate to="/" replace />;
     }

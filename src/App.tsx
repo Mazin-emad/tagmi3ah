@@ -13,6 +13,9 @@ import Register from "./pages/Register";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Profile from "./pages/Profile";
 import NotAuthenticatedOnly from "./components/auth/NotAuthenticatedOnly";
+import VerifyEmail from "./pages/VerifyEmail";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 const App = () => {
   return (
@@ -31,6 +34,30 @@ const App = () => {
           element={
             <NotAuthenticatedOnly>
               <Register />
+            </NotAuthenticatedOnly>
+          }
+        />
+        <Route
+          path="/verify-email"
+          element={
+            <NotAuthenticatedOnly>
+              <VerifyEmail />
+            </NotAuthenticatedOnly>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <NotAuthenticatedOnly>
+              <ForgotPassword />
+            </NotAuthenticatedOnly>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <NotAuthenticatedOnly>
+              <ResetPassword />
             </NotAuthenticatedOnly>
           }
         />
