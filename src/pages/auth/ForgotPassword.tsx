@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useRequestPasswordReset } from "@/hooks";
+import type { ApiError } from "@/api/types";
 
 const ForgotSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -22,6 +23,7 @@ const ForgotPassword = () => {
     handleSubmit,
     reset,
     formState: { errors },
+    setError,
   } = useForm<ForgotFormData>({ resolver: zodResolver(ForgotSchema) });
 
   const onSubmit = (data: ForgotFormData) => {
@@ -29,11 +31,24 @@ const ForgotPassword = () => {
       { email: data.email },
       {
         onSuccess: (res) => {
-          toast.success(res?.message || "If that email exists, a reset link was sent.");
+          toast.success(
+            res?.message || "If that email exists, a reset link was sent."
+          );
           reset();
         },
-        onError: (error) => {
-          toast.error(error?.message || "Failed to send password reset email.");
+        onError: (error: unknown) => {
+          const apiError = error as ApiError;
+          const fieldErrors = apiError?.fieldErrors;
+          if (fieldErrors) {
+            Object.entries(fieldErrors).forEach(([field, message]) => {
+              if (["email"].includes(field)) {
+                setError(field as keyof ForgotFormData, { message });
+              }
+            });
+          }
+          toast.error(
+            apiError?.message || "Failed to send password reset email."
+          );
         },
       }
     );

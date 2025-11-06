@@ -1,82 +1,224 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { myItemsContext } from '../../Context/myItems'
-// import { Motherboards } from '@/lib/constants';
-import { useContext } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MyItemsContext } from "../../Context/myItemsContext";
+import { useContext } from "react";
+import type { Product } from "@/types";
+import { Badge } from "@/components/ui/badge";
+import { XMarkIcon, ShoppingCartIcon } from "@heroicons/react/24/outline";
+import { Button } from "@/components/ui/button";
+import { useCart } from "@/Context/cartContext";
+import { toast } from "sonner";
+
 export default function Sidebar() {
-    const { setcurrentshow, items,setItems,setSocket,setramtype } = useContext(myItemsContext);
+  const {
+    setCurrentShow,
+    items,
+    setItems,
+    setSocket,
+    setRamType,
+    currentShow,
+  } = useContext(MyItemsContext);
+  const { addItems } = useCart();
 
+  function removeItem(product: Product) {
+    if (product.category === "CPU") {
+      setItems((prev: Record<string, Product>) => ({
+        ...prev,
+        CPU: undefined as unknown as Product,
+      }));
+      setSocket((prev: { pSocket: string; mSocket: string }) => ({
+        ...prev,
+        pSocket: "all",
+      }));
+      if (items.Motherboard == undefined) {
+        setRamType("all");
+      }
+    }
+    if (product.category === "Motherboard") {
+      setItems((prev: Record<string, Product>) => ({
+        ...prev,
+        Motherboard: undefined as unknown as Product,
+      }));
+      setSocket((prev: { pSocket: string; mSocket: string }) => ({
+        ...prev,
+        mSocket: "all",
+      }));
+      if (items.CPU == undefined) {
+        setRamType("all");
+      }
+    } else if (product.category == "RAM") {
+      setItems((prev: Record<string, Product>) => ({
+        ...prev,
+        RAM: undefined as unknown as Product,
+      }));
+      if (items.Motherboard == undefined && items.CPU == undefined) {
+        setRamType("all");
+      }
+    } else {
+      setItems((prev: Record<string, Product>) => ({
+        ...prev,
+        [product.category]: undefined as unknown as Product,
+      }));
+    }
+  }
 
-    // handeler functions
-    function removeItem(product:any){
-     // setItems((prev: Record<string, any>) => ({ ...prev, [currentshow]: undefined }));
-     // console.log(product)
-    //  console.log(currentshow)
-     if(product.category === "CPU"){
-      //let previtems=Object.keys(items).filter((item:any)=>item!="CPU")
-      setItems((prev:any)=>({...prev,CPU:undefined}))
-      setSocket((prev:any)=>({...prev,psocket:'all'}))
-      if(items.Motherboard==undefined){
-        setramtype('all')
-      }
+  const navItems = [
+    { show: "CPU", filter: "CPUs" },
+    { show: "GPU", filter: "GPUs" },
+    { show: "Motherboard", filter: "Motherboards" },
+    { show: "RAM", filter: "ramKits" },
+    { show: "Power Supply", filter: "PowerSupply" },
+    { show: "Case", filter: "pcCases" },
+  ];
+
+  const selectedProducts = Object.values(items).filter(
+    (product): product is Product => product !== undefined
+  );
+
+  const totalPrice = selectedProducts.reduce(
+    (sum, product) => sum + product.price,
+    0
+  );
+
+  const handleAddBuildToCart = () => {
+    if (selectedProducts.length === 0) {
+      toast.error("Please select at least one component");
+      return;
     }
-    if(product.category === "Motherboard"){
-    //  let previtems=Object.keys(items).filter((item:any)=>item!="Motherboard")
-      setItems((prev)=>({...prev,Motherboard:undefined}))
-      setSocket((prev)=>({...prev,msocket:'all'}))
-      if(items.CPU==undefined){
-        setramtype('all')
+
+    addItems(selectedProducts);
+    toast.success(
+      `Added ${selectedProducts.length} item${
+        selectedProducts.length > 1 ? "s" : ""
+      } to cart!`,
+      {
+        description: `Total: $${totalPrice.toFixed(2)}`,
       }
-    }else if(product.category=='RAM'){
-      setItems((prev:any)=>({...prev,RAM:undefined}))
-      if(items.Motherboard==undefined&&items.CPU==undefined){
-      setramtype('all')
-      }
-    }else{
-      setItems((prev:any)=>({...prev,[product.category]:undefined}))
-    }
-   // console.log(items)
-    }
+    );
+  };
+
   return (
-    <aside className="sticky top-6 hidden md:block">
+    <div className="space-y-4 lg:sticky lg:top-6">
+      {/* Component Selection - Mobile: Horizontal scroll, Desktop: Vertical */}
       <Card>
         <CardHeader className="pb-4">
           <CardTitle className="text-lg">Components</CardTitle>
         </CardHeader>
         <CardContent>
-          <nav className="space-y-1">
-            {[{show:'CPU',filter:'CPUs'},
-             {show:'GPU',filter:'GPUs'},
-              {show:'Motherboard',filter:'Motherboards'},
-               {show:'RAM',filter:'ramKits'},
-                {show:'Power Supply',filter:'PowerSupply'},
-                 {show:'Case',filter:'pcCases'}].map((item) => (
-              <div
-                style={{cursor:'pointer'}}
-                key={item.filter}
-                className="w-full text-left rounded-md px-3 py-2 text-sm bg-muted/40"
-                onClick={()=>{setcurrentshow(item.filter)}}
-              >
-                {item.show}
-              </div>
-            ))}
-          </nav>
-          <div className="mt-4 space-y-2">
-            <div className="text-sm font-medium">Selected</div>
-            <div className="space-y-1">
-              {Object.keys(items).length === 0 ? (
-                <div className="text-xs text-muted-foreground">No items selected</div>
-              ) : (
-                Object.entries(items).map(([category, product]: any) =>{ if(product!=undefined){ return(
-                  <div key={category} className="text-xs flex justify-between items-center bg-muted/30 rounded px-2 py-1" onClick={()=>{removeItem(product)}}>
-                    <span className="font-medium">{category}</span>
-                    <span className="truncate ml-2">{product?.name}</span>
-                  </div>
-                )}})
-              )}
+          {/* Mobile: Horizontal scrollable */}
+          <div className="md:hidden overflow-x-auto pb-2 -mx-4 px-4">
+            <div className="flex gap-2 min-w-max">
+              {navItems.map((item) => (
+                <button
+                  key={item.filter}
+                  onClick={() => setCurrentShow(item.filter)}
+                  className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
+                    currentShow === item.filter
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted hover:bg-muted/80"
+                  }`}
+                >
+                  {item.show}
+                </button>
+              ))}
             </div>
           </div>
+
+          {/* Desktop: Vertical list */}
+          <nav className="hidden md:block space-y-1">
+            {navItems.map((item) => (
+              <button
+                key={item.filter}
+                onClick={() => setCurrentShow(item.filter)}
+                className={`w-full text-left rounded-md px-3 py-2 text-sm transition-colors ${
+                  currentShow === item.filter
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted/40 hover:bg-muted/60"
+                }`}
+              >
+                {item.show}
+              </button>
+            ))}
+          </nav>
         </CardContent>
       </Card>
-    </aside>
-  )
+
+      {/* Selected Items */}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg">Selected Components</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {Object.keys(items).length === 0 ? (
+            <div className="text-sm text-muted-foreground text-center py-4">
+              No items selected
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {Object.entries(items).map(
+                ([category, product]: [string, Product]) => {
+                  if (product != undefined) {
+                    return (
+                      <div
+                        key={category}
+                        className="flex items-start justify-between gap-2 p-2 rounded-md bg-muted/30 hover:bg-muted/50 transition-colors group"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant="secondary" className="text-xs">
+                              {category}
+                            </Badge>
+                          </div>
+                          <p className="text-xs font-medium truncate">
+                            {product?.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            ${product?.price.toFixed(2)}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => removeItem(product)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-destructive/10 rounded"
+                          aria-label="Remove item"
+                        >
+                          <XMarkIcon className="h-4 w-4 text-destructive" />
+                        </button>
+                      </div>
+                    );
+                  }
+                }
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Add Build to Cart Button */}
+      {selectedProducts.length > 0 && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Total Price</span>
+                <span className="text-lg font-bold text-primary">
+                  ${totalPrice.toFixed(2)}
+                </span>
+              </div>
+              <Button
+                onClick={handleAddBuildToCart}
+                className="w-full"
+                size="lg"
+              >
+                <ShoppingCartIcon className="h-5 w-5 mr-2" />
+                Add Build to Cart
+              </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                {selectedProducts.length} component
+                {selectedProducts.length > 1 ? "s" : ""} selected
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
 }

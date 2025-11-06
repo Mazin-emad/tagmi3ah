@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { usersApi } from "@/api/users";
 import { queryKeys } from "@/api/queryKeys";
 import type { ChangePasswordRequest, UpdateMeRequest } from "@/api/types";
-import { clearAuthCookie, clearAuthCache } from "@/api/authUtils";
+import { clearAuthCache } from "@/api/authUtils";
 import { useEffect } from "react";
 
 /**

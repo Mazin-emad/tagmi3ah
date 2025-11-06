@@ -5,6 +5,7 @@ export interface ApiError {
   status: number;
   message: string;
   details?: unknown;
+  fieldErrors?: Record<string, string>;
 }
 
 /**
@@ -115,8 +116,9 @@ export interface MeResponse {
 export type AllUsersResponse = MeResponse[];
 
 export interface ChangePasswordRequest {
-  currentPassword: string;
+  oldPassword: string;
   newPassword: string;
+  newPasswordConfirm: string;
 }
 
 export interface ChangePasswordResponse {
@@ -125,9 +127,9 @@ export interface ChangePasswordResponse {
 }
 
 export interface UpdateMeRequest {
-  name: string;
-  phoneNumber: string;
-  address: string;
+  name?: string;
+  phoneNumber?: string;
+  address?: string;
 }
 
 export interface UpdateMeResponse {

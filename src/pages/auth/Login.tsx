@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useLogin } from "@/hooks";
 import { toast } from "sonner";
+import type { ApiError } from "@/api/types";
 
 // Form validation schema
 const loginSchema = z.object({
@@ -35,6 +36,7 @@ export default function Login() {
     register,
     handleSubmit,
     formState: { errors },
+    setError,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -54,9 +56,18 @@ export default function Login() {
           // Navigate to dashboard or previous page
           navigate("/dashboard");
         },
-        onError: (error) => {
+        onError: (error: unknown) => {
+          const apiError = error as ApiError;
+          const fieldErrors = apiError?.fieldErrors;
+          if (fieldErrors) {
+            Object.entries(fieldErrors).forEach(([field, message]) => {
+              if (["email", "password"].includes(field)) {
+                setError(field as keyof LoginFormData, { message });
+              }
+            });
+          }
           toast.error(
-            error?.message || "Login failed. Please check your credentials."
+            apiError?.message || "Login failed. Please check your credentials."
           );
         },
       }
@@ -73,8 +84,8 @@ export default function Login() {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="min-h-screen flex flex-col items-center justify-center py-6 px-4">
+    <div>
+      <div className="flex flex-col items-center justify-center py-6 px-4">
         <div className="max-w-[480px] w-full">
           {/* Logo */}
           <Link to="/" className="block">

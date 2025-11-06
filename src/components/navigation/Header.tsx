@@ -26,7 +26,8 @@ const navigation = {
   pages: [
     { name: "About", href: "/about" },
     { name: "Recommendations", href: "/recommendations" },
-    { name: "Contact", href: "/contact" },
+    { name: "Builder", href: "/builder" },
+    { name: "AI Advisor", href: "/chat" },
   ],
 };
 
@@ -71,7 +72,7 @@ export default function Header() {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="relative -m-2 inline-flex items-center justify-center rounded-md p-2 text-gray-400"
+                className="relative cursor-pointer -m-2 inline-flex items-center justify-center rounded-md p-2 text-gray-400"
               >
                 <span className="absolute -inset-0.5" />
                 <span className="sr-only">Close menu</span>
@@ -95,20 +96,7 @@ export default function Header() {
             <div className="space-y-6 border-t border-gray-200 px-4 py-6">
               {user ? (
                 <>
-                  {/* User name with link to profile - shown for all authenticated users */}
-                  <div className="flow-root">
-                    <Link
-                      to="/profile"
-                      className="-m-2 block p-2 font-medium text-gray-900 hover:text-gray-700"
-                    >
-                      <div className="flex items-center gap-2">
-                        <UserIcon className="h-5 w-5" />
-                        <span>{user.name || user.email}</span>
-                      </div>
-                    </Link>
-                  </div>
-                  {/* Dashboard link - shown only for admins */}
-                  {user.role?.includes("ADMIN") && (
+                  {user.role?.includes("ADMIN") ? (
                     <div className="flow-root">
                       <Link
                         to="/dashboard"
@@ -117,11 +105,23 @@ export default function Header() {
                         Dashboard
                       </Link>
                     </div>
+                  ) : (
+                    <div className="flow-root">
+                      <Link
+                        to="/profile"
+                        className="-m-2 block p-2 font-medium text-gray-900 hover:text-gray-700"
+                      >
+                        <div className="flex items-center gap-2">
+                          <UserIcon className="h-5 w-5" />
+                          <span>{user.name || user.email}</span>
+                        </div>
+                      </Link>
+                    </div>
                   )}
                   <div className="flow-root">
                     <button
                       onClick={handleLogout}
-                      className="-m-2 block p-2 font-medium text-gray-900 hover:text-gray-700 w-full text-left"
+                      className="-m-2 block p-2 cursor-pointer font-medium text-gray-900 hover:text-gray-700 w-full text-left"
                     >
                       Sign out
                     </button>
@@ -213,25 +213,21 @@ export default function Header() {
               <div className="ml-auto flex items-center">
                 {user ? (
                   <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-end lg:space-x-6">
-                    {/* User name with link to profile - shown for all authenticated users */}
-                    <Link
-                      to="/profile"
-                      className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-800"
-                    >
-                      <UserIcon className="h-5 w-5" />
-                      <span>{user.name || user.email}</span>
-                    </Link>
-                    {/* Dashboard link - shown only for admins */}
-                    {user.role?.includes("ADMIN") && (
-                      <>
-                        <span aria-hidden="true" className="h-6 w-px bg-gray-200" />
-                        <Link
-                          to="/dashboard"
-                          className="text-sm font-medium text-gray-700 hover:text-gray-800"
-                        >
-                          Dashboard
-                        </Link>
-                      </>
+                    {user.role?.includes("ADMIN") ? (
+                      <Link
+                        to="/dashboard"
+                        className="text-sm font-medium text-gray-700 hover:text-gray-800"
+                      >
+                        Dashboard
+                      </Link>
+                    ) : (
+                      <Link
+                        to="/profile"
+                        className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-800"
+                      >
+                        <UserIcon className="h-5 w-5" />
+                        <span>{user.name || user.email}</span>
+                      </Link>
                     )}
                     <span aria-hidden="true" className="h-6 w-px bg-gray-200" />
                     <button

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,26 +32,37 @@ const VerifyEmail = () => {
     formState: { errors },
   } = useForm<ResendFormData>({ resolver: zodResolver(ResendSchema) });
   const navigate = useNavigate();
-  const [hasTried, setHasTried] = useState(false);
+  const didRunRef = useRef(false);
+  const handledResultRef = useRef(false);
+  const [showResend, setShowResend] = useState(false);
 
   useEffect(() => {
-    if (token && !hasTried) {
-      setHasTried(true);
-      confirmAccount(token, {
-        onSuccess: (res) => {
-          if (res?.success) {
-            toast.success("Email verified successfully!");
-            navigate("/login");
-          } else {
-            toast.info(res?.message || "Verification processed.");
-          }
-        },
-        onError: (error) => {
-          toast.error(error?.message || "Verification failed.");
-        },
-      });
-    }
-  }, [token, hasTried, confirmAccount, navigate]);
+    if (!token || didRunRef.current) return;
+    didRunRef.current = true; // StrictMode-safe one-shot guard
+    confirmAccount(token, {
+      onSuccess: (res) => {
+        handledResultRef.current = true;
+        if (res?.success) {
+          toast.success("Email verified successfully!", {
+            id: "verify-success",
+          });
+          navigate("/login");
+        } else {
+          toast.info(res?.message || "Verification processed.", {
+            id: "verify-info",
+          });
+        }
+      },
+      onError: (error) => {
+        if (handledResultRef.current) return;
+        const err = error as { message?: string };
+        toast.error(err?.message || "Verification failed.", {
+          id: "verify-error",
+        });
+        setShowResend(true);
+      },
+    });
+  }, [token, confirmAccount, navigate]);
 
   const onResend = (data: ResendFormData) => {
     requireConfirm(
@@ -77,7 +88,7 @@ const VerifyEmail = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {token ? (
+            {token && !showResend ? (
               <div className="text-center space-y-2">
                 <p className="text-slate-600">
                   Processing your verification token...

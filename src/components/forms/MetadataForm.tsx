@@ -15,6 +15,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { useUpdateMetadata, useMetadata } from "@/hooks";
 import { useEffect } from "react";
+import type { ApiError } from "@/api/types";
 
 const FormSchema = z.object({
   categories: z.string(),
@@ -66,10 +67,17 @@ export default function MetadataForm() {
         onSuccess: () => {
           toast.success("Metadata updated successfully!");
         },
-        onError: (error) => {
-          toast.error(
-            error?.message || "Failed to update metadata. Please try again."
-          );
+        onError: (error: unknown) => {
+          const apiError = error as ApiError;
+          const fieldErrors = apiError?.fieldErrors;
+          if (fieldErrors) {
+            Object.entries(fieldErrors).forEach(([field, message]) => {
+              if (["categories", "brands"].includes(field)) {
+                form.setError(field as keyof MetadataFormData, { message });
+              }
+            });
+          }
+          toast.error(apiError?.message || "Failed to update metadata. Please try again.");
         },
       }
     );
@@ -87,7 +95,7 @@ export default function MetadataForm() {
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="grid gap-6"
+            className="grid gap-4 sm:gap-6"
           >
             <div className="grid gap-3">
               <Label htmlFor="metadata-categories">
@@ -112,7 +120,7 @@ export default function MetadataForm() {
               />
             </div>
             <div>
-              <Button type="submit" disabled={isPending}>
+              <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
                 {isPending ? "Saving..." : "Save Metadata"}
               </Button>
             </div>

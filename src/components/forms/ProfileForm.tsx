@@ -14,6 +14,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useMe, useUpdateMe } from "@/hooks";
+import type { ApiError } from "@/api/types";
 import { useEffect } from "react";
 import { ErrorPage } from "@/components/global/ErrorComponents";
 import { LoadingPage } from "@/components/global/LoadingComponents";
@@ -49,7 +50,8 @@ export default function ProfileForm() {
   }, [user, form, isLoading, isError]);
 
   if (isLoading) return <LoadingPage message="Loading user data..." />;
-  if (isError) return <ErrorPage message={error?.message || "An error occurred"} />;
+  if (isError)
+    return <ErrorPage message={error?.message || "An error occurred"} />;
 
   const onSubmit = (data: ProfileFormData) => {
     updateMe(
@@ -62,9 +64,18 @@ export default function ProfileForm() {
         onSuccess: () => {
           toast.success("Profile updated successfully!");
         },
-        onError: (error) => {
+        onError: (error: unknown) => {
+          const apiError = error as ApiError;
+          const fieldErrors = apiError?.fieldErrors;
+          if (fieldErrors) {
+            Object.entries(fieldErrors).forEach(([field, message]) => {
+              if (["name", "phoneNumber", "address"].includes(field)) {
+                form.setError(field as keyof ProfileFormData, { message });
+              }
+            });
+          }
           toast.error(
-            error?.message || "Failed to update profile. Please try again."
+            apiError?.message || "Failed to update profile. Please try again."
           );
         },
       }
@@ -83,7 +94,7 @@ export default function ProfileForm() {
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="grid gap-6"
+            className="grid gap-4 sm:gap-6"
           >
             <div className="grid gap-3">
               <Label htmlFor="profile-name">Name</Label>
@@ -113,7 +124,11 @@ export default function ProfileForm() {
               />
             </div>
             <div>
-              <Button type="submit" disabled={isUpdating}>
+              <Button
+                type="submit"
+                disabled={isUpdating}
+                className="w-full sm:w-auto"
+              >
                 {isUpdating ? "Saving..." : "Save Profile"}
               </Button>
             </div>
@@ -123,4 +138,3 @@ export default function ProfileForm() {
     </Card>
   );
 }
-

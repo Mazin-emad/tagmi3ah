@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useResetPassword } from "@/hooks";
+import type { ApiError } from "@/api/types";
 
 const ResetSchema = z
   .object({
@@ -39,6 +40,7 @@ const ResetPassword = () => {
     register,
     handleSubmit,
     formState: { errors },
+    setError,
   } = useForm<ResetFormData>({ resolver: zodResolver(ResetSchema) });
 
   const onSubmit = (data: ResetFormData) => {
@@ -53,8 +55,17 @@ const ResetPassword = () => {
           toast.success("Password reset successfully. Please sign in.");
           navigate("/login");
         },
-        onError: (error) => {
-          toast.error(error?.message || "Failed to reset password.");
+        onError: (error: unknown) => {
+          const apiError = error as ApiError;
+          const fieldErrors = apiError?.fieldErrors;
+          if (fieldErrors) {
+            Object.entries(fieldErrors).forEach(([field, message]) => {
+              if (["newPassword", "confirmPassword"].includes(field)) {
+                setError(field as keyof ResetFormData, { message });
+              }
+            });
+          }
+          toast.error(apiError?.message || "Failed to reset password.");
         },
       }
     );

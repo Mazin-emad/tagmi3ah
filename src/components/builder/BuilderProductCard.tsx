@@ -10,37 +10,48 @@ import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useContext } from "react";
-import { myItemsContext } from "@/Context/myItems";
+import { MyItemsContext } from "@/Context/myItemsContext";
 
 export function BuilderProductCard({ product }: { product: Product }) {
-  const { setItems,setSocket,setramtype,items,ramtype } = useContext(myItemsContext);
+  const {
+    setItems,
+    setSocket,
+    setRamType: setramtype,
+    items,
+    ramType: ramtype,
+  } = useContext(MyItemsContext);
 
   const handleSelect = () => {
-    setItems((prev: Record<string, any>) => ({ ...prev, [product.category]: product }));
+    setItems((prev: Record<string, any>) => ({
+      ...prev,
+      [product.category]: product,
+    }));
     // console.log("hereeeeeeee",product)
-    if(product.category === "CPU" ){
-      setSocket((prev) => ({ ...prev, psocket: product.socket ?? 'all' }));
-      if(product.supportedMemoryTypes?.length ==1){
-      //  console.log("supportedMemoryTypes",product.supportedMemoryTypes)
-        setramtype(()=>{return product.supportedMemoryTypes?.[0]??'all'});
-      }else{
-        setramtype('all')
+    if (product.category === "CPU") {
+      setSocket((prev) => ({ ...prev, pSocket: product.socket ?? "all" }));
+      if (product.supportedMemoryTypes?.length == 1) {
+        //  console.log("supportedMemoryTypes",product.supportedMemoryTypes)
+        setramtype(() => {
+          return product.supportedMemoryTypes?.[0] ?? "all";
+        });
+      } else {
+        setramtype("all");
       }
-    }if(product.category === "Motherboard"){
-      setSocket((prev) => ({ ...prev, msocket: product.socket ?? 'all' }));
-      setramtype(product.ramType ?? 'all');
     }
-    if(product.category === "RAM"){
-      if(items.CPU==undefined && items.Motherboard==undefined){
-        setramtype(product.type ?? 'all');
-       // console.log(product.type)
-       // console.log(ramtype);
-       // console.log("hereeeeeeee",items)
+    if (product.category === "Motherboard") {
+      setSocket((prev) => ({ ...prev, mSocket: product.socket ?? "all" }));
+      setramtype(product.ramType ?? "all");
+    }
+    if (product.category === "RAM") {
+      if (items.CPU == undefined && items.Motherboard == undefined) {
+        setramtype(product.type ?? "all");
+        // console.log(product.type)
+        // console.log(ramtype);
+        // console.log("hereeeeeeee",items)
       }
     }
   };
 
- 
   return (
     <Card>
       <CardHeader>
@@ -64,10 +75,17 @@ export function BuilderProductCard({ product }: { product: Product }) {
         <div className="flex justify-between items-center pt-4">
           <span className="text-lg font-bold">${product.price}</span>
           <div className="flex gap-2">
-            <Button className="cursor-pointer" onClick={() => console.log("Add to Cart")}>
+            <Button
+              className="cursor-pointer"
+              onClick={() => console.log("Add to Cart")}
+            >
               Add to Cart
             </Button>
-            <Button variant="outline" className="cursor-pointer" onClick={handleSelect}>
+            <Button
+              variant="outline"
+              className="cursor-pointer"
+              onClick={handleSelect}
+            >
               Select
             </Button>
           </div>

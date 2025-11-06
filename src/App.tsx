@@ -8,14 +8,15 @@ import Builder from "./pages/Builder";
 import Contact from "./pages/Contact";
 import About from "./pages/About";
 import CheckOut from "./pages/CheckOut";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Profile from "./pages/Profile";
 import NotAuthenticatedOnly from "./components/auth/NotAuthenticatedOnly";
-import VerifyEmail from "./pages/VerifyEmail";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
+import VerifyEmail from "./pages/auth/VerifyEmail";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
+import Chat from "./pages/Chat";
 
 const App = () => {
   return (
@@ -61,6 +62,7 @@ const App = () => {
             </NotAuthenticatedOnly>
           }
         />
+        <Route path="/chat" element={<Chat />} />
         <Route index element={<Home />} />
         <Route path="/checkout" element={<CheckOut />} />
         <Route path="/products/:id" element={<Product />} />

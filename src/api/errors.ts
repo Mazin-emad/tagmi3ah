@@ -33,6 +33,23 @@ function extractErrorMessage(data: unknown, defaultMessage: string): string {
 }
 
 /**
+ * Extract field-level errors when server returns an object like:
+ * { "phoneNumber": "Mobile number must be 11 digits" }
+ */
+function extractFieldErrors(data: unknown): Record<string, string> | undefined {
+  if (!data || typeof data !== "object") return undefined;
+  const obj = data as Record<string, unknown>;
+  // If there's a top-level message/error, treat it as non-field error
+  if (typeof obj.message === "string" || typeof obj.error === "string") {
+    return undefined;
+  }
+  // Collect string values as field messages
+  const entries = Object.entries(obj).filter(([, v]) => typeof v === "string");
+  if (entries.length === 0) return undefined;
+  return Object.fromEntries(entries as Array<[string, string]>);
+}
+
+/**
  * Convert AxiosError to ApiError
  * Extracts message from response data if available, otherwise uses default message
  * Handles both string and object error responses from the server
@@ -66,11 +83,13 @@ export function toApiError(error: unknown): ApiError {
     const defaultMessage =
       axiosError.message || `Request failed with status ${status}`;
     const message = extractErrorMessage(data, defaultMessage);
+    const fieldErrors = status === 400 ? extractFieldErrors(data) : undefined;
 
     return {
       status,
       message,
       details: data,
+      fieldErrors,
     };
   }
 

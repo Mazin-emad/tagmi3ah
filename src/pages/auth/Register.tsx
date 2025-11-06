@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useRegister } from "@/hooks";
 import { toast } from "sonner";
+import type { ApiError } from "@/api/types";
 
 // Form validation schema
 const registerSchema = z
@@ -62,6 +63,7 @@ export default function Register() {
     register: registerField,
     handleSubmit,
     formState: { errors },
+    setError,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   });
@@ -84,10 +86,26 @@ export default function Register() {
           );
           navigate("/login");
         },
-        onError: (error) => {
-          toast.error(
-            error?.message || "Registration failed. Please try again."
-          );
+        onError: (error: unknown) => {
+          const apiError = error as ApiError;
+          const fieldErrors = apiError?.fieldErrors;
+          if (fieldErrors) {
+            Object.entries(fieldErrors).forEach(([field, message]) => {
+              if (
+                [
+                  "name",
+                  "email",
+                  "phoneNumber",
+                  "address",
+                  "password",
+                  "passwordConfirm",
+                ].includes(field)
+              ) {
+                setError(field as keyof RegisterFormData, { message });
+              }
+            });
+          }
+          toast.error(apiError?.message || "Registration failed. Please try again.");
         },
       }
     );

@@ -15,6 +15,7 @@ import { useForm } from "react-hook-form";
 import { useCreateProduct } from "@/hooks";
 import { toast } from "sonner";
 import { useState } from "react";
+import type { ApiError } from "@/api/types";
 
 const FormSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -26,11 +27,13 @@ const FormSchema = z.object({
   image: z.instanceof(File).optional().or(z.string().optional()),
 });
 
+type ProductFormData = z.infer<typeof FormSchema>;
+
 export default function ProductForm() {
   const { mutate: createProduct, isPending } = useCreateProduct();
   const [imageFile, setImageFile] = useState<File | null>(null);
 
-  const form = useForm<z.infer<typeof FormSchema>>({
+  const form = useForm<ProductFormData>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       name: "",
@@ -43,7 +46,7 @@ export default function ProductForm() {
     },
   });
 
-  const onSubmit = (data: z.infer<typeof FormSchema>) => {
+  const onSubmit = (data: ProductFormData) => {
     createProduct(
       {
         name: data.name,
@@ -60,10 +63,27 @@ export default function ProductForm() {
           form.reset();
           setImageFile(null);
         },
-        onError: (error) => {
-          toast.error(
-            error?.message || "Failed to create product. Please try again."
-          );
+        onError: (error: unknown) => {
+          const apiError = error as ApiError;
+          const fieldErrors = apiError?.fieldErrors;
+          if (fieldErrors) {
+            Object.entries(fieldErrors).forEach(([field, message]) => {
+              if (
+                [
+                  "name",
+                  "price",
+                  "description",
+                  "category",
+                  "brand",
+                  "stock",
+                  "image",
+                ].includes(field)
+              ) {
+                form.setError(field as keyof ProductFormData, { message });
+              }
+            });
+          }
+          toast.error(apiError?.message || "Failed to create product. Please try again.");
         },
       }
     );
@@ -89,7 +109,7 @@ export default function ProductForm() {
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="grid gap-6 grid-cols-2"
+            className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2"
           >
             <div className="grid gap-3">
               <Label htmlFor="product-name">Name</Label>
@@ -135,8 +155,8 @@ export default function ProductForm() {
                 onChange={handleImageChange}
               />
             </div>
-            <div className="col-span-2">
-              <Button type="submit" disabled={isPending}>
+            <div className="sm:col-span-2">
+              <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
                 {isPending ? "Creating..." : "Add Product"}
               </Button>
             </div>
