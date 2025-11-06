@@ -1,6 +1,7 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import ProductForm from "@/components/forms/ProductForm";
-import MetadataForm from "@/components/forms/MetadataForm";
+import BrandsCategoriesForm from "@/components/forms/BrandsCategoriesForm";
+import { BrandsTable, CategoriesTable } from "@/components/forms/BrandsCategoriesTable";
 import ProfileForm from "@/components/forms/ProfileForm";
 import ChangePasswordForm from "@/components/profile/ChangePasswordForm";
 
@@ -18,7 +19,7 @@ const Dashboard = () => {
                 Add New Product
               </TabsTrigger>
               <TabsTrigger value="metadata" className="shrink-0 px-3 py-2 text-sm sm:text-base">
-                Update Metadata
+                Brands & Categories
               </TabsTrigger>
               <TabsTrigger value="profile" className="shrink-0 px-3 py-2 text-sm sm:text-base">
                 Update Profile
@@ -31,7 +32,13 @@ const Dashboard = () => {
               <ProductForm />
             </TabsContent>
             <TabsContent value="metadata">
-              <MetadataForm />
+              <div className="grid gap-6">
+                <BrandsCategoriesForm />
+                <div className="grid md:grid-cols-2 gap-6">
+                  <BrandsTable />
+                  <CategoriesTable />
+                </div>
+              </div>
             </TabsContent>
             <TabsContent value="profile">
               <ProfileForm />

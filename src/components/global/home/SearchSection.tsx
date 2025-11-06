@@ -8,7 +8,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { brands, categories } from "@/lib/constants";
 import { useForm } from "react-hook-form";
 import { Form } from "@/components/ui/form";
 import { z } from "zod";
@@ -21,6 +20,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
+import { useBrandsPaged } from "@/hooks/useBrands";
+import { useCategoriesPaged } from "@/hooks/useCategories";
 const FormSchema = z.object({
   category: z.string().optional(),
   brand: z.array(z.string()).optional(),
@@ -37,13 +38,16 @@ const SearchSection = () => {
     },
   });
 
+  const { data: categories } = useCategoriesPaged({ page: 0, size: 10 });
+  const { data: brands } = useBrandsPaged({ page: 0, size: 10 });
+
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
     console.log(data);
   };
 
   return (
     <section>
-      <div className="grid max-w-screen-xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16">
+      <div className="grid max-w-7xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16">
         <h2 className="mb-4 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
           Products You'll Love
         </h2>
@@ -59,12 +63,12 @@ const SearchSection = () => {
                 <DropdownMenuContent className="w-56" align="start">
                   <DropdownMenuGroup>
                     <DropdownMenuItem>All Products</DropdownMenuItem>
-                    {categories.map((category) => (
+                    {categories?.content.map((category) => (
                       <DropdownMenuItem
-                        key={category}
+                        key={category.id}
                         {...form.register("category")}
                       >
-                        {category}
+                        {category.name}
                       </DropdownMenuItem>
                     ))}
                   </DropdownMenuGroup>
@@ -89,28 +93,31 @@ const SearchSection = () => {
                 name="brand"
                 render={() => (
                   <FormItem className="flex flex-row items-center flex-wrap gap-3">
-                    {brands.map((item) => (
+                    {brands?.content.map((item) => (
                       <FormField
-                        key={item}
+                        key={item.id}
                         control={form.control}
                         name="brand"
                         render={({ field }) => {
                           return (
                             <FormItem
-                              key={item}
+                              key={item.id}
                               className="flex flex-row items-center gap-1"
                             >
                               <FormControl>
                                 <Checkbox
-                                  checked={field.value?.includes(item)}
+                                  checked={field.value?.includes(item.id)}
                                   onCheckedChange={(checked) => {
                                     const currentValues = field.value || [];
                                     if (checked) {
-                                      field.onChange([...currentValues, item]);
+                                      field.onChange([
+                                        ...currentValues,
+                                        item.id,
+                                      ]);
                                     } else {
                                       field.onChange(
                                         currentValues.filter(
-                                          (value) => value !== item
+                                          (value) => value !== item.id
                                         )
                                       );
                                     }
@@ -118,7 +125,7 @@ const SearchSection = () => {
                                 />
                               </FormControl>
                               <FormLabel className="text-sm font-normal">
-                                <Badge variant="outline">{item}</Badge>
+                                <Badge variant="outline">{item.name}</Badge>
                               </FormLabel>
                             </FormItem>
                           );

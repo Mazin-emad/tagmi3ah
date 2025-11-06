@@ -9,7 +9,7 @@ const Home = () => {
   return (
     <main>
       <section className="bg-white dark:bg-gray-900">
-        <div className="grid max-w-screen-xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16 lg:grid-cols-12">
+        <div className="grid max-w-7xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16 lg:grid-cols-12">
           <div className="mr-auto place-self-center lg:col-span-7">
             <h1 className="max-w-2xl mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl text-primary">
               Stop Searching. Start Building.
@@ -54,7 +54,7 @@ const Home = () => {
       </section>
       <SearchSection />
       <section>
-        <div className="grid max-w-screen-xl px-4 mx-auto lg:gap-8 xl:gap-0">
+        <div className="grid max-w-7xl px-4 mx-auto lg:gap-8 xl:gap-0">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />

@@ -191,3 +191,30 @@ export interface UpdateMetadataResponse {
   categories?: string[];
   brands?: string[];
 }
+
+// ============================================================================
+// BRAND & CATEGORY DTOs
+// ============================================================================
+
+export interface Brand {
+  id: number;
+  name: string;
+}
+
+export interface Category {
+  id: number;
+  name: string;
+}
+
+export interface PageRequest {
+  page?: number;
+  size?: number;
+}
+
+export interface PagedResponse<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}

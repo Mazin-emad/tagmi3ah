@@ -21,15 +21,11 @@ import SideCart from "../global/cart/SideCart";
 import { useMe, useLogout } from "@/hooks";
 import { toast } from "sonner";
 
-const navigation = {
-  categories: [],
-  pages: [
-    { name: "About", href: "/about" },
-    { name: "Recommendations", href: "/recommendations" },
-    { name: "Builder", href: "/builder" },
-    { name: "AI Advisor", href: "/chat" },
-  ],
-};
+const navigation = [
+  { name: "About Us", href: "/about" },
+  { name: "AI Advisor", href: "/chat" },
+  { name: "Builder", href: "/builder" },
+];
 
 export default function Header() {
   const [open, setOpen] = useState(false);
@@ -81,7 +77,7 @@ export default function Header() {
             </div>
 
             <div className="space-y-6 border-t border-gray-200 px-4 py-6">
-              {navigation.pages.map((page) => (
+              {navigation.map((page) => (
                 <div key={page.name} className="flow-root">
                   <Link
                     to={page.href}
@@ -198,7 +194,7 @@ export default function Header() {
               {/* Flyout menus */}
               <PopoverGroup className="hidden lg:ml-8 lg:block lg:self-stretch">
                 <div className="flex h-full space-x-8">
-                  {navigation.pages.map((page) => (
+                  {navigation.map((page) => (
                     <Link
                       key={page.name}
                       to={page.href}
