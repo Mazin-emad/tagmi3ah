@@ -6,7 +6,8 @@ export interface PcCaseRequest {
   price: number;
   description: string;
   stock: number;
-  brandName: string;
+  brandId: number;
+  categoryId: number;
   formFactor: string; // ATX, mATX, etc
   maxGpuLengthMm: number;
   maxCpuCoolerHeightMm: number;

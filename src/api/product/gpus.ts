@@ -6,7 +6,8 @@ export interface GpuRequest {
   price: number;
   description: string;
   stock: number;
-  brandName: string;
+  brandId: number;
+  categoryId: number;
   vramGB: number;
   tdpW: number;
   recommendedPSUWatt: number;

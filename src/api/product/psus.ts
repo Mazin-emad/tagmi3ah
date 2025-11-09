@@ -6,7 +6,8 @@ export interface PsuRequest {
   price: number;
   description: string;
   stock: number;
-  brandName: string;
+  brandId: number;
+  categoryId: number;
   wattage: number;
   efficiency: string; // e.g., "80+ Gold"
   modularity: string; // e.g., "Semi"

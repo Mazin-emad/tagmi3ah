@@ -6,7 +6,8 @@ export interface MotherboardRequest {
   price: number;
   description: string;
   stock: number;
-  brandName: string;
+  brandId: number;
+  categoryId: number;
   socket: string;
   chipset: string;
   formFactor: string;

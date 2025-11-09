@@ -228,7 +228,7 @@ export default function Header() {
                     <span aria-hidden="true" className="h-6 w-px bg-gray-200" />
                     <button
                       onClick={handleLogout}
-                      className="text-sm font-medium text-gray-700 hover:text-gray-800"
+                      className="text-sm font-medium cursor-pointer text-gray-700 hover:text-gray-800"
                     >
                       Sign out
                     </button>

@@ -105,7 +105,9 @@ export default function Register() {
               }
             });
           }
-          toast.error(apiError?.message || "Registration failed. Please try again.");
+          toast.error(
+            apiError?.message || "Registration failed. Please try again."
+          );
         },
       }
     );
@@ -128,9 +130,6 @@ export default function Register() {
                 className="w-44 inline-block"
               />
             </Link>
-            <h4 className="text-slate-600 text-base mt-4">
-              Sign up into your account
-            </h4>
           </div>
 
           {/* Register Card */}

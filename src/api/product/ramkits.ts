@@ -6,7 +6,8 @@ export interface RamKitRequest {
   price: number;
   description: string;
   stock: number;
-  brandName: string;
+  brandId: number;
+  categoryId: number;
   capacityGB: number;
   modules: number;
   speedMHz: number;

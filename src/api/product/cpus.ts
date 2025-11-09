@@ -6,7 +6,8 @@ export interface CpuRequest {
   price: number;
   description: string;
   stock: number;
-  brandName: string;
+  brandId: number;
+  categoryId: number;
   cores: number;
   threads: number;
   baseClockGHz: number;
@@ -40,7 +41,11 @@ export const cpusApi = {
     const res = await multipartApiClient.post<CpuResponse>("/cpus", form);
     return res.data;
   },
-  update: async (id: number, payload: Partial<CpuRequest>, image?: File): Promise<CpuResponse> => {
+  update: async (
+    id: number,
+    payload: Partial<CpuRequest>,
+    image?: File
+  ): Promise<CpuResponse> => {
     const form = buildMultipart("cpu", payload, image);
     const res = await multipartApiClient.put<CpuResponse>(`/cpus/${id}`, form);
     return res.data;
@@ -49,5 +54,3 @@ export const cpusApi = {
     await jsonApiClient.delete(`/cpus/${id}`);
   },
 };
-
-
