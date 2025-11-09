@@ -33,7 +33,12 @@ const cpuSchema = z.object({
   boostClockGHz: z.number().min(0.1, "Boost clock is required"),
   socket: z.string().min(1, "Socket is required"),
   tdpW: z.number().min(1, "TDP is required"),
-  image: z.any().refine((file) => file instanceof File && file.size > 0, "Image is required"),
+  image: z
+    .any()
+    .refine(
+      (file) => file instanceof File && file.size > 0,
+      "Image is required"
+    ),
 });
 
 type CpuFormData = z.infer<typeof cpuSchema>;
@@ -41,7 +46,8 @@ type CpuFormData = z.infer<typeof cpuSchema>;
 export default function CpuForm() {
   const { mutate: createCpu, isPending } = useCreateCpu();
   const { data: brands = [], isLoading: brandsLoading } = useAllBrands();
-  const { data: categories = [], isLoading: categoriesLoading } = useAllCategories();
+  const { data: categories = [], isLoading: categoriesLoading } =
+    useAllCategories();
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   const form = useForm<CpuFormData>({
@@ -119,7 +125,9 @@ export default function CpuForm() {
     <Card>
       <CardHeader>
         <CardTitle>Add New CPU</CardTitle>
-        <CardDescription>Create a new central processing unit product</CardDescription>
+        <CardDescription>
+          Create a new central processing unit product
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -148,7 +156,9 @@ export default function CpuForm() {
                       type="number"
                       step="0.01"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseFloat(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -177,7 +187,9 @@ export default function CpuForm() {
                       id="stock"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -196,7 +208,9 @@ export default function CpuForm() {
                       placeholder="Select a brand"
                       options={brandOptions}
                       disabled={brandsLoading}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -215,7 +229,9 @@ export default function CpuForm() {
                       placeholder="Select a category"
                       options={categoryOptions}
                       disabled={categoriesLoading}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -232,7 +248,9 @@ export default function CpuForm() {
                       id="cores"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -249,7 +267,9 @@ export default function CpuForm() {
                       id="threads"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -267,7 +287,9 @@ export default function CpuForm() {
                       type="number"
                       step="0.01"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseFloat(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -285,7 +307,9 @@ export default function CpuForm() {
                       type="number"
                       step="0.01"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseFloat(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -314,7 +338,9 @@ export default function CpuForm() {
                       id="tdpW"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -354,4 +380,3 @@ export default function CpuForm() {
     </Card>
   );
 }
-

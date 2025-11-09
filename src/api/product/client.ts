@@ -48,18 +48,22 @@ jsonApiClient.interceptors.response.use(
 export const multipartApiClient: AxiosInstance = axios.create({
   baseURL: getBaseURL(),
   withCredentials: true,
-  headers: { "Content-Type": "multipart/form-data" },
+  headers: {}, // DO NOT set Content-Type - browser will set it with boundary for FormData
 });
 
-// multipartApiClient.interceptors.request.use(
-//   (config) => {
-//     config.withCredentials = true;
-//     (config.headers as Record<string, string>)["Content-Type"] =
-//       "multipart/form-data";
-//     return config;
-//   },
-//   (error) => Promise.reject(error)
-// );
+multipartApiClient.interceptors.request.use(
+  (config) => {
+    config.withCredentials = true;
+    // Remove Content-Type header for FormData - browser will set it with boundary
+    if (config.data instanceof FormData && config.headers) {
+      const headers = config.headers as Record<string, unknown>;
+      delete headers["Content-Type"];
+      delete headers["content-type"];
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 multipartApiClient.interceptors.response.use(
   (response) => response,
@@ -78,7 +82,11 @@ export function buildMultipart(
   image?: File
 ): FormData {
   const form = new FormData();
-  form.append(jsonKey, JSON.stringify(json));
+  // Create JSON as Blob with correct content-type
+  const jsonBlob = new Blob([JSON.stringify(json)], {
+    type: "application/json",
+  });
+  form.append(jsonKey, jsonBlob);
   if (image) {
     form.append("image", image);
   }

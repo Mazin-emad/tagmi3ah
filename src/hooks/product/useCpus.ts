@@ -17,8 +17,15 @@ export function useCreateCpu() {
 export function useUpdateCpu() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data, image }: { id: number; data: Partial<CpuRequest>; image?: File }) =>
-      cpusApi.update(id, data, image),
+    mutationFn: ({
+      id,
+      data,
+      image,
+    }: {
+      id: number;
+      data: Partial<CpuRequest>;
+      image?: File;
+    }) => cpusApi.update(id, data, image),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["cpus"] }),
   });
 }
@@ -30,5 +37,3 @@ export function useDeleteCpu() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["cpus"] }),
   });
 }
-
-
