@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MyItemsContext } from "../../Context/myItemsContext";
+import { MyItemsContext, type AnyProductResponse } from "../../Context/myItemsContext";
 import { useContext } from "react";
-import type { Product } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { XMarkIcon, ShoppingCartIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
@@ -21,11 +20,12 @@ export default function Sidebar() {
   const { addItems } = useCart();
   const { mutateAsync: addToCart } = useAddToCart();
 
-  function removeItem(product: Product) {
-    if (product.category === "CPU") {
-      setItems((prev: Record<string, Product>) => ({
+  function removeItem(product: AnyProductResponse) {
+    const categoryName = product.categoryName || "";
+    if (categoryName.toUpperCase() === "CPU") {
+      setItems((prev: Record<string, AnyProductResponse>) => ({
         ...prev,
-        CPU: undefined as unknown as Product,
+        CPU: undefined as unknown as AnyProductResponse,
       }));
       setSocket((prev: { pSocket: string; mSocket: string }) => ({
         ...prev,
@@ -35,10 +35,10 @@ export default function Sidebar() {
         setRamType("all");
       }
     }
-    if (product.category === "Motherboard") {
-      setItems((prev: Record<string, Product>) => ({
+    if (categoryName.toUpperCase() === "MOTHERBOARD") {
+      setItems((prev: Record<string, AnyProductResponse>) => ({
         ...prev,
-        Motherboard: undefined as unknown as Product,
+        Motherboard: undefined as unknown as AnyProductResponse,
       }));
       setSocket((prev: { pSocket: string; mSocket: string }) => ({
         ...prev,
@@ -47,18 +47,18 @@ export default function Sidebar() {
       if (items.CPU == undefined) {
         setRamType("all");
       }
-    } else if (product.category == "RAM") {
-      setItems((prev: Record<string, Product>) => ({
+    } else if (categoryName.toUpperCase() === "RAMKIT" || categoryName.toUpperCase() === "RAM") {
+      setItems((prev: Record<string, AnyProductResponse>) => ({
         ...prev,
-        RAM: undefined as unknown as Product,
+        RAM: undefined as unknown as AnyProductResponse,
       }));
       if (items.Motherboard == undefined && items.CPU == undefined) {
         setRamType("all");
       }
     } else {
-      setItems((prev: Record<string, Product>) => ({
+      setItems((prev: Record<string, AnyProductResponse>) => ({
         ...prev,
-        [product.category]: undefined as unknown as Product,
+        [categoryName]: undefined as unknown as AnyProductResponse,
       }));
     }
   }
@@ -73,7 +73,7 @@ export default function Sidebar() {
   ];
 
   const selectedProducts = Object.values(items).filter(
-    (product): product is Product => product !== undefined
+    (product): product is AnyProductResponse => product !== undefined
   );
 
   const totalPrice = selectedProducts.reduce(
@@ -93,9 +93,10 @@ export default function Sidebar() {
     // Sync with server cart
     try {
       await Promise.all(
-        selectedProducts.map((p) =>
-          addToCart({ productId: parseInt(p.id, 10), quantity: 1 })
-        )
+        selectedProducts.map((p) => {
+          const productId = typeof p.id === "string" ? parseInt(p.id, 10) : p.id;
+          return addToCart({ productId, quantity: 1 });
+        })
       );
       toast.success(
         `Added ${selectedProducts.length} item${
@@ -169,7 +170,7 @@ export default function Sidebar() {
           ) : (
             <div className="space-y-2">
               {Object.entries(items).map(
-                ([category, product]: [string, Product]) => {
+                ([category, product]: [string, AnyProductResponse]) => {
                   if (product != undefined) {
                     return (
                       <div

@@ -5,7 +5,7 @@ import ChangePasswordForm from "@/components/profile/ChangePasswordForm";
 const Profile = () => {
   return (
     <main>
-      <section className="grid max-w-screen-xl py-4 px-4 mx-auto gap-4 lg:gap-8 xl:gap-2 lg:py-8">
+      <section className="grid max-w-7xl py-4 px-4 mx-auto gap-4 lg:gap-8 xl:gap-2 lg:py-8">
         <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
           Profile
         </h1>

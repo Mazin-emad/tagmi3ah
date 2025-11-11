@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import egyptFlagImage from "@/assets/imgs/Egypt-flag.svg";
 import logoImage from "@/assets/imgs/logo.png";
@@ -20,6 +18,7 @@ import { Button } from "../ui/button";
 import SideCart from "../global/cart/SideCart";
 import { useMe, useLogout } from "@/hooks";
 import { toast } from "sonner";
+import { useCart } from "@/Context/cartContextBase";
 
 const navigation = [
   { name: "About Us", href: "/about" },
@@ -33,7 +32,7 @@ export default function Header() {
   const { data: user } = useMe();
   const { mutate: logout } = useLogout();
   const navigate = useNavigate();
-
+  const { getItemCount } = useCart();
   const handleCartOpen = () => {
     setCartOpen(true);
     navigate("/checkout");
@@ -278,7 +277,7 @@ export default function Header() {
                       className="size-6 shrink-0 text-gray-400 group-hover:text-gray-500"
                     />
                     <span className="ml-2 text-sm font-medium text-gray-700 group-hover:text-gray-800">
-                      0
+                      {getItemCount()}
                     </span>
                     <span className="sr-only">items in cart, view bag</span>
                   </Button>

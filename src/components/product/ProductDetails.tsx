@@ -12,10 +12,16 @@ type ProductDetailsProps = {
   specs: SpecItem[];
 };
 
-export function ProductDetails({ title, brand, price, description, image, specs }: ProductDetailsProps) {
-
+export function ProductDetails({
+  title,
+  brand,
+  price,
+  description,
+  image,
+  specs,
+}: ProductDetailsProps) {
   return (
-    <section className="max-w-screen-xl mx-auto px-4 py-6">
+    <section className="max-w-7xl mx-auto px-4 py-6">
       {/* UPPER PART  */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         <div className="md:col-span-5">
@@ -34,18 +40,14 @@ export function ProductDetails({ title, brand, price, description, image, specs 
         </div>
 
         <div className="md:col-span-7 space-y-4">
-          <h1 className="text-2xl font-semibold">
-            {title}
-          </h1>
+          <h1 className="text-2xl font-semibold">{title}</h1>
 
           <div className="flex items-center gap-3">
             <Badge>{brand}</Badge>
             <span className="text-xl font-bold">{price}</span>
           </div>
 
-          <p className="text-sm text-muted-foreground">
-            {description}
-          </p>
+          <p className="text-sm text-muted-foreground">{description}</p>
         </div>
       </div>
 
@@ -58,7 +60,9 @@ export function ProductDetails({ title, brand, price, description, image, specs 
               key={`${item.label}-${idx}`}
               className="flex items-center justify-between rounded-md border p-3"
             >
-              <span className="text-sm text-muted-foreground">{item.label}</span>
+              <span className="text-sm text-muted-foreground">
+                {item.label}
+              </span>
               <span className="text-sm font-medium">{item.value}</span>
             </div>
           ))}

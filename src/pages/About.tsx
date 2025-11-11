@@ -1,90 +1,92 @@
-import { FaGithub, FaXTwitter } from "react-icons/fa6";
-import { CgProfile } from "react-icons/cg";
+// import { FaGithub, FaXTwitter } from "react-icons/fa6";
+// import { CgProfile } from "react-icons/cg";
 
-const teamMembers = [
-  {
-    name: "Hossen Mohammed",
-    role: "Founder / AI Engineer",
-    image:
-      "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=880&q=80",
-    links: {
-      website: "https://mazin-emad.netlify.app",
-      github: "https://www.github.com",
-      x: "https://www.x.com",
-    },
-  },
-  {
-    name: "Mazin Emad",
-    role: "Frontend Developer",
-    image:
-      "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=880&q=80",
-    links: {
-      website: "https://mazin-emad.netlify.app",
-      github: "https://www.github.com",
-      x: "https://www.x.com",
-    },
-  },
-  {
-    name: "Esmail Mohamed",
-    role: "FullStack Developer",
-    image:
-      "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=880&q=80",
-    links: {
-      website: "https://mazin-emad.netlify.app",
-      github: "https://www.github.com",
-      x: "https://www.x.com",
-    },
-  },
-  {
-    name: "Eslam Mohamed",
-    role: "FullStack developer",
-    image:
-      "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=880&q=80",
-    links: {
-      website: "https://mazin-emad.netlify.app",
-      github: "https://www.github.com",
-      x: "https://www.x.com",
-    },
-  },
-];
+import Contact from "@/components/global/Contact";
 
-const SocialLinks = ({
-  links,
-}: {
-  links: { website: string; github: string; x: string };
-}) => (
-  <div className="flex mt-3 -mx-2">
-    <a
-      href={links.x}
-      target="_blank"
-      className="mx-2 text-gray-600 dark:text-gray-300 hover:text-gray-500 dark:hover:text-gray-300 group-hover:text-white"
-      aria-label="X"
-    >
-      <FaXTwitter className="size-5" />
-    </a>
-    <a
-      href={links.website}
-      target="_blank"
-      className="mx-2 text-gray-600 dark:text-gray-300 hover:text-gray-500 dark:hover:text-gray-300 group-hover:text-white"
-      aria-label="Website"
-    >
-      <CgProfile className="size-5" />
-    </a>
-    <a
-      href={links.github}
-      target="_blank"
-      className="mx-2 text-gray-600 dark:text-gray-300 hover:text-gray-500 dark:hover:text-gray-300 group-hover:text-white"
-      aria-label="Github"
-    >
-      <FaGithub className="size-5" />
-    </a>
-  </div>
-);
+// const teamMembers = [
+//   {
+//     name: "Hossen Mohammed",
+//     role: "Founder / AI Engineer",
+//     image:
+//       "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=880&q=80",
+//     links: {
+//       website: "https://mazin-emad.netlify.app",
+//       github: "https://www.github.com",
+//       x: "https://www.x.com",
+//     },
+//   },
+//   {
+//     name: "Mazin Emad",
+//     role: "Frontend Developer",
+//     image:
+//       "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=880&q=80",
+//     links: {
+//       website: "https://mazin-emad.netlify.app",
+//       github: "https://www.github.com",
+//       x: "https://www.x.com",
+//     },
+//   },
+//   {
+//     name: "Esmail Mohamed",
+//     role: "FullStack Developer",
+//     image:
+//       "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=880&q=80",
+//     links: {
+//       website: "https://mazin-emad.netlify.app",
+//       github: "https://www.github.com",
+//       x: "https://www.x.com",
+//     },
+//   },
+//   {
+//     name: "Eslam Mohamed",
+//     role: "FullStack developer",
+//     image:
+//       "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=880&q=80",
+//     links: {
+//       website: "https://mazin-emad.netlify.app",
+//       github: "https://www.github.com",
+//       x: "https://www.x.com",
+//     },
+//   },
+// ];
+
+// const SocialLinks = ({
+//   links,
+// }: {
+//   links: { website: string; github: string; x: string };
+// }) => (
+//   <div className="flex mt-3 -mx-2">
+//     <a
+//       href={links.x}
+//       target="_blank"
+//       className="mx-2 text-gray-600 dark:text-gray-300 hover:text-gray-500 dark:hover:text-gray-300 group-hover:text-white"
+//       aria-label="X"
+//     >
+//       <FaXTwitter className="size-5" />
+//     </a>
+//     <a
+//       href={links.website}
+//       target="_blank"
+//       className="mx-2 text-gray-600 dark:text-gray-300 hover:text-gray-500 dark:hover:text-gray-300 group-hover:text-white"
+//       aria-label="Website"
+//     >
+//       <CgProfile className="size-5" />
+//     </a>
+//     <a
+//       href={links.github}
+//       target="_blank"
+//       className="mx-2 text-gray-600 dark:text-gray-300 hover:text-gray-500 dark:hover:text-gray-300 group-hover:text-white"
+//       aria-label="Github"
+//     >
+//       <FaGithub className="size-5" />
+//     </a>
+//   </div>
+// );
 
 export default function About() {
   return (
     <section className="bg-primary/10">
-      <div className="container px-6 py-10 mx-auto">
+      {/* <div className="container px-6 py-10 mx-auto">
         <h1 className="text-2xl font-semibold text-center text-gray-800 capitalize lg:text-3xl dark:text-white">
           Our Executive Team
         </h1>
@@ -119,7 +121,9 @@ export default function About() {
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
+
+      <Contact />
     </section>
   );
 }

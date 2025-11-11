@@ -7,6 +7,7 @@ import {
   deleteCartItem,
   type Cart,
   type CartItemRequest,
+  deleteAllCartItems,
 } from "@/api/cart";
 
 const queryKeys = {
@@ -56,6 +57,16 @@ export function useDeleteCartItem() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (productId: number) => deleteCartItem(productId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.cart.me });
+    },
+  });
+}
+
+export function useDeleteAllCartItems() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => deleteAllCartItems(),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.cart.me });
     },

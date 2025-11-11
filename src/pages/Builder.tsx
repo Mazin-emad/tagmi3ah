@@ -1,14 +1,6 @@
 import Sidebar from "../components/ui/sidebar";
 import { BuilderProductRow } from "@/components/builder/BuilderProductRow";
-// import {
-//   CPUs,
-//   Motherboards,
-//   GPUs,
-//   ramKits,
-//   PowerSupply,
-//   pcCases,
-// } from "@/lib/constants";
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
 import { MyItemsContext } from "@/Context/myItemsContext";
 import {
   Table,
@@ -24,10 +16,8 @@ import { useGpus } from "@/hooks/product/useGpus";
 import { useRamKits } from "@/hooks/product/useRamKits";
 import { usePsus } from "@/hooks/product/usePsus";
 import { usePcCases } from "@/hooks/product/usePcCases";
-type RamType = "DDR4" | "DDR5";
 
 const Builder = () => {
-  
   const context = useContext(MyItemsContext);
   const { currentShow, socket, ramType, items } = context;
   const { data: cpus = [] } = useCpus();
@@ -36,45 +26,63 @@ const Builder = () => {
   const { data: ramKits } = useRamKits();
   const { data: psus } = usePsus();
   const { data: pcCases } = usePcCases();
-  console.log(cpus);
-  // console.log(cpus[0].supportedMemoryTypes);
-  // Get filtered products based on current selection
+
+  const selectedRamType = useMemo(() => {
+    if (!ramType || typeof ramType !== "string") return "ALL";
+    return ramType.toUpperCase();
+  }, [ramType]);
+
   const getFilteredProducts = () => {
     switch (currentShow) {
       case "CPUs":
-        let cpulist= cpus ?? [];
-        return cpulist.filter((p) => {
+        return (cpus ?? []).filter((p) => {
+          // Only filter by motherboard socket if a motherboard is selected
+          const hasMotherboard = items.Motherboard !== undefined;
           const socketMatches =
-            p.socket === socket.mSocket || socket.mSocket == "all";
+            !hasMotherboard ||
+            !socket?.mSocket ||
+            socket.mSocket === "all" ||
+            p.socket === socket.mSocket;
+
+          // Only filter by RAM type if RAM is selected (not if only CPU is selected)
+          const hasRAM = items.RAM !== undefined;
+          const supportedMemoryTypes = (p.supportedMemoryTypes ?? []).map(
+            (value) => value.toUpperCase()
+          );
+
           const ramMatches =
-            ramType == "all" ||
-            p.supportedMemoryTypes.includes(ramType as "DDR4" | "DDR5") ||
-            (items.Motherboard == undefined && items.RAM == undefined);
+            !hasRAM ||
+            selectedRamType === "ALL" ||
+            supportedMemoryTypes.includes(selectedRamType);
+
           return socketMatches && ramMatches;
         });
       case "GPUs":
-        let gpulist= gpus ?? [];
-        return gpulist;
+        return gpus ?? [];
       case "Motherboards":
-        let MBlist = motherboards ?? [];
-        return MBlist.filter((p) => {
+        return (motherboards ?? []).filter((p) => {
           const socketMatches =
-            p.socket === socket.pSocket || socket.pSocket == "all";
+            !socket?.pSocket ||
+            socket.pSocket === "all" ||
+            p.socket === socket.pSocket;
+
+          const motherboardRamType = (p.ramType ?? "").toUpperCase();
           const ramMatches =
-            ramType == "all" || p.ramType?.includes(ramType as RamType);
+            selectedRamType === "ALL" ||
+            (motherboardRamType &&
+              motherboardRamType.includes(selectedRamType));
+
           return socketMatches && ramMatches;
         });
       case "ramKits":
-        let ramlist =ramKits??[];
-        return ramlist.filter(
-          (p) => ramType === (p.type as RamType) || ramType == "all"
-        );
+        return (ramKits ?? []).filter((p) => {
+          const kitType = (p.type ?? "").toUpperCase();
+          return selectedRamType === "ALL" || kitType === selectedRamType;
+        });
       case "PowerSupply":
-        let psulist = psus ?? [];
-        return psulist;
+        return psus ?? [];
       case "pcCases":
-        let listpcCases = pcCases ?? [];
-        return listpcCases;
+        return pcCases ?? [];
       default:
         return [];
     }

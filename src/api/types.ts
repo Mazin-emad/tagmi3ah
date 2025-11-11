@@ -142,16 +142,8 @@ export interface UpdateMeResponse {
 // PRODUCT DTOs
 // ============================================================================
 
-export interface Product {
-  id: string;
-  name: string;
-  image: string;
-  price: number;
-  description: string;
-  category: string;
-  brand: string;
-  stock: number;
-}
+// Re-export Product from unified types
+export type { Product } from "@/types/product";
 
 export interface CreateProductRequest {
   name: string;

@@ -5,7 +5,6 @@ import NotFound from "./pages/NotFound";
 import Product from "./pages/Product";
 import Dashboard from "./pages/Dashboard";
 import Builder from "./pages/Builder";
-import Contact from "./pages/Contact";
 import About from "./pages/About";
 import CheckOut from "./pages/CheckOut";
 import Login from "./pages/auth/Login";
@@ -67,7 +66,6 @@ const App = () => {
         <Route path="/checkout" element={<CheckOut />} />
         <Route path="/products/:id" element={<Product />} />
         <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
         <Route
           path="/dashboard"
           element={

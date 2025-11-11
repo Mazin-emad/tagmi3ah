@@ -1,95 +1,120 @@
-import { useState, useEffect, type ReactNode, type JSX } from "react";
-import type { Product } from "@/types";
-import { useAddToCart, useDeleteCartItem } from "@/hooks/useCart";
+import { useMemo, useState, type ReactNode, type JSX } from "react";
+import type { Product, LocalCartItem } from "@/types";
+import {
+  useGetMyCart,
+  useAddToCart,
+  useUpdateCartItem,
+  useDeleteCartItem,
+  useDeleteAllCartItems,
+} from "@/hooks/useCart";
 import { CartContext } from "./cartContextBase";
-
-interface CartItem extends Product {
-  quantity: number;
-}
 
 export function CartProvider({
   children,
 }: {
   children: ReactNode;
 }): JSX.Element {
-  const [items, setItems] = useState<CartItem[]>(() => {
-    // Load from localStorage on mount
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("cart");
-      if (saved) {
-        try {
-          return JSON.parse(saved);
-        } catch {
-          return [];
-        }
-      }
-    }
-    return [];
-  });
+  // Fetch cart from server
+  const { data: serverCart } = useGetMyCart();
 
-  // Server sync mutations (optimistic local-first UX)
+  // Track which product is currently being updated
+  const [updatingProductId, setUpdatingProductId] = useState<string | null>(null);
+
+  // Server sync mutations
   const { mutate: addToServer } = useAddToCart();
+  const updateCartItemMutation = useUpdateCartItem();
   const { mutate: deleteFromServer } = useDeleteCartItem();
+  const { mutate: deleteAllCartItemsOnServer } = useDeleteAllCartItems();
 
-  // Save to localStorage whenever items change
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("cart", JSON.stringify(items));
+  // Wrapper for updateCartItem that tracks loading state
+  const updateCartItemOnServer = (body: { productId: number; quantity: number }) => {
+    setUpdatingProductId(String(body.productId));
+    updateCartItemMutation.mutate(body, {
+      onSettled: () => {
+        // Clear loading state when mutation completes (success or error)
+        setUpdatingProductId(null);
+      },
+    });
+  };
+
+  // Convert server cart items to local cart items
+  // The server already includes full product data, so we just need to map it
+  const items = useMemo<LocalCartItem[]>(() => {
+    if (!serverCart?.items || serverCart.items.length === 0) {
+      return [];
     }
-  }, [items]);
+
+    return serverCart.items.map((cartItem) => {
+      const product = cartItem.product;
+      // Convert server product format to our Product type
+      const localProduct: Product = {
+        id: String(product.id),
+        name: product.name,
+        image: product.imageUrl,
+        price: product.price,
+        description: product.description || "",
+        categoryName: product.categoryName || "",
+        brandName: product.brandName || "",
+        stock: product.stock,
+      };
+
+      // Return as LocalCartItem with quantity
+      return {
+        ...localProduct,
+        quantity: cartItem.quantity,
+      };
+    });
+  }, [serverCart]);
 
   const toNumberId = (id: string): number | null => {
     const n = Number(id);
     return Number.isFinite(n) ? n : null;
   };
 
-  const addItem = (product: Product) => {
-    setItems((prev) => {
-      const existing = prev.find((item) => item.id === product.id);
-      if (existing) {
-        return prev.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...prev, { ...product, quantity: 1 }];
-    });
-
-    // Best-effort sync to server cart
+  const addItem = (product: Product, qty: number = 1) => {
     const productIdNum = toNumberId(product.id);
-    if (productIdNum !== null) {
-      addToServer({ productId: productIdNum, quantity: 1 });
+    if (productIdNum === null) return;
+
+    // Check if item already exists in cart
+    const existing = items.find((item) => item.id === product.id);
+
+    if (existing) {
+      // Update quantity using updateCartItem
+      const newQuantity = existing.quantity + qty;
+      updateItemQuantity(product.id, newQuantity);
+    } else {
+      // Add new item to server cart (React Query will refetch and update items)
+      addToServer({ productId: productIdNum, quantity: qty });
     }
   };
 
-  const addItems = (products: Product[]) => {
-    setItems((prev) => {
-      const newItems = [...prev];
-      products.forEach((product) => {
-        const existing = newItems.find((item) => item.id === product.id);
-        if (existing) {
-          existing.quantity += 1;
-        } else {
-          newItems.push({ ...product, quantity: 1 });
-        }
-      });
-      return newItems;
-    });
+  const updateItemQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      removeItem(productId);
+      return;
+    }
 
-    // Sync each added product to server (best-effort)
+    const productIdNum = toNumberId(productId);
+    if (productIdNum === null) return;
+
+    // Update quantity on server (React Query will refetch and update items)
+    updateCartItemOnServer({ productId: productIdNum, quantity });
+  };
+
+  const addItems = (products: Product[]) => {
+    // Add each product to server cart (React Query will refetch and update items)
     const uniqueIds = new Set<number>();
     for (const p of products) {
       const n = toNumberId(p.id);
       if (n !== null && !uniqueIds.has(n)) {
         uniqueIds.add(n);
+        addToServer({ productId: n, quantity: 1 });
       }
     }
-    uniqueIds.forEach((pid) => addToServer({ productId: pid, quantity: 1 }));
   };
 
   const removeItem = (productId: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== productId));
+    // Delete from server cart (React Query will refetch and update items)
     const productIdNum = toNumberId(productId);
     if (productIdNum !== null) {
       deleteFromServer(productIdNum);
@@ -97,7 +122,8 @@ export function CartProvider({
   };
 
   const clearCart = () => {
-    setItems([]);
+    // Clear all items from server using the delete all endpoint
+    deleteAllCartItemsOnServer();
   };
 
   const getTotalPrice = () => {
@@ -108,6 +134,11 @@ export function CartProvider({
     return items.reduce((count, item) => count + item.quantity, 0);
   };
 
+  const isItemInCart = (productId: string | number): boolean => {
+    const idString = String(productId);
+    return items.some((item) => item.id === idString);
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -115,9 +146,12 @@ export function CartProvider({
         addItem,
         addItems,
         removeItem,
+        updateItemQuantity,
         clearCart,
         getTotalPrice,
         getItemCount,
+        updatingProductId,
+        isItemInCart,
       }}
     >
       {children}

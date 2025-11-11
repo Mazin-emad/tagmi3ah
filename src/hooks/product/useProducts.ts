@@ -6,6 +6,15 @@ export function useProducts() {
   return useQuery({ queryKey: ["cpus"], queryFn: () => productsAPI.list() });
 }
 
+export function useGetProductById(id?: number) {
+  return useQuery({
+    queryKey: ["product", id],
+    enabled: typeof id === "number" && Number.isFinite(id),
+    queryFn: () => productsAPI.getById(id as number),
+    staleTime: 60_000,
+  });
+}
+
 export function useCreateProducts() {
   const qc = useQueryClient();
   return useMutation({
@@ -18,8 +27,15 @@ export function useCreateProducts() {
 export function useUpdateProducts() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data, image }: { id: number; data: Partial<Product>; image?: File }) =>
-      productsAPI.update(id, data, image),
+    mutationFn: ({
+      id,
+      data,
+      image,
+    }: {
+      id: number;
+      data: Partial<Product>;
+      image?: File;
+    }) => productsAPI.update(id, data, image),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["products"] }),
   });
 }

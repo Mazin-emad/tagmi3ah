@@ -22,7 +22,6 @@ export type {
   AllUsersResponse,
   ChangePasswordRequest,
   ChangePasswordResponse,
-  Product,
   CreateProductRequest,
   CreateProductResponse,
   ProductsResponse,
@@ -46,3 +45,6 @@ export { queryKeys } from "./queryKeys";
 
 // Error utilities
 export { toApiError } from "./errors";
+
+// Re-export Product from unified types
+export type { Product } from "@/types/product";

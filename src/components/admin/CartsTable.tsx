@@ -16,6 +16,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatCurrency } from "@/lib/utils";
 
 export default function CartsTable() {
 	const { data: carts = [], isLoading } = useGetAllCarts();
@@ -23,8 +24,18 @@ export default function CartsTable() {
 	const [openCartId, setOpenCartId] = useState<number | null>(null);
 
 	const userById = useMemo(() => {
-		const map = new Map<string | number, { name?: string; phoneNumber?: string; email?: string }>();
-		users?.forEach((u: any) => map.set(u.id, { name: u.name, phoneNumber: u.phoneNumber, email: u.email }));
+		const map = new Map<
+			string | number,
+			{ name?: string; phoneNumber?: string; email?: string; address?: string }
+		>();
+		users?.forEach((u: any) =>
+			map.set(u.id, {
+				name: u.name,
+				phoneNumber: u.phoneNumber,
+				email: u.email,
+				address: u.address,
+			})
+		);
 		return map;
 	}, [users]);
 
@@ -60,17 +71,22 @@ export default function CartsTable() {
 			<CardContent>
 				<div className="overflow-x-auto">
 					<Table>
-						<TableHeader>
+				<TableHeader>
 							<TableRow>
 								<TableHead>User</TableHead>
 								<TableHead>Phone</TableHead>
-								<TableHead className="text-right">Total</TableHead>
+						<TableHead>Address</TableHead>
+						<TableHead className="text-center">Items</TableHead>
+						<TableHead className="text-right">Total</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
 							{carts.map((cart: any) => {
 								const user = userById.get(cart.userId) || {};
 								const total = getTotal(cart);
+						const itemsCount = Array.isArray(cart.items)
+							? cart.items.reduce((sum: number, it: any) => sum + (it.quantity ?? 1), 0)
+							: 0;
 								return (
 									<TableRow
 										key={cart.id}
@@ -83,8 +99,12 @@ export default function CartsTable() {
 										<TableCell className="whitespace-nowrap">
 											{user.phoneNumber || "-"}
 										</TableCell>
+								<TableCell className="max-w-[280px] truncate">
+									{user.address || "-"}
+								</TableCell>
+								<TableCell className="text-center">{itemsCount}</TableCell>
 										<TableCell className="text-right">
-											${total.toFixed(2)}
+									{formatCurrency(total)}
 										</TableCell>
 									</TableRow>
 								);
@@ -99,18 +119,30 @@ export default function CartsTable() {
 				const user = userById.get(cart.userId) || {};
 				return (
 					<Dialog open={open} onOpenChange={(v) => !v && setOpenCartId(null)} key={`dlg-${cart.id}`}>
-						<DialogContent className="max-w-2xl">
+						<DialogContent className="max-w-3xl">
 							<DialogHeader>
 								<DialogTitle>
 									Cart #{cart.id} — {user.name || user.email || `User #${cart.userId}`}
 								</DialogTitle>
 							</DialogHeader>
-							<div className="space-y-4">
-								<div className="text-sm">
+							<div className="space-y-5">
+								<div className="grid gap-2 text-sm sm:grid-cols-2">
+									<p><span className="font-medium">User:</span> {user.name || user.email || "-"}</p>
 									<p><span className="font-medium">User ID:</span> {cart.userId}</p>
 									<p><span className="font-medium">Phone:</span> {user.phoneNumber || "-"}</p>
+									<p className="sm:col-span-2"><span className="font-medium">Address:</span> {user.address || "-"}</p>
 								</div>
-								<div className="overflow-x-auto">
+
+								<div className="rounded-md border p-3 flex items-center justify-between bg-muted/30 text-sm">
+									<span className="font-medium">Items</span>
+									<span>
+										{Array.isArray(cart.items)
+											? cart.items.reduce((sum: number, it: any) => sum + (it.quantity ?? 1), 0)
+											: 0}
+									</span>
+								</div>
+
+								<div className="overflow-x-auto rounded-md border">
 									<Table>
 										<TableHeader>
 											<TableRow>
@@ -128,17 +160,45 @@ export default function CartsTable() {
 												const subtotal = price * qty;
 												return (
 													<TableRow key={it.id}>
-														<TableCell className="max-w-[260px] truncate">{name}</TableCell>
-														<TableCell>${price.toFixed(2)}</TableCell>
+														<TableCell className="max-w-[260px] truncate">
+															<div className="flex items-center gap-3">
+																{it.product?.imageUrl && (
+																	<img
+																		src={it.product.imageUrl}
+																		alt={name}
+																		className="h-10 w-10 rounded object-cover border"
+																	/>
+																)}
+																<div className="truncate">{name}</div>
+															</div>
+														</TableCell>
+														<TableCell>{formatCurrency(price)}</TableCell>
 														<TableCell>{qty}</TableCell>
 														<TableCell className="text-right">
-															${subtotal.toFixed(2)}
+															{formatCurrency(subtotal)}
 														</TableCell>
 													</TableRow>
 												);
 											})}
 										</TableBody>
 									</Table>
+								</div>
+
+								<div className="flex items-center justify-end gap-8 text-sm">
+									<div className="space-y-1">
+										<div className="flex items-center justify-between gap-8">
+											<span className="text-muted-foreground">Subtotal</span>
+											<span>{formatCurrency(getTotal(cart))}</span>
+										</div>
+										<div className="flex items-center justify-between gap-8">
+											<span className="text-muted-foreground">Shipping</span>
+											<span>—</span>
+										</div>
+										<div className="flex items-center justify-between gap-8 font-semibold">
+											<span>Total</span>
+											<span>{formatCurrency(getTotal(cart))}</span>
+										</div>
+									</div>
 								</div>
 							</div>
 						</DialogContent>

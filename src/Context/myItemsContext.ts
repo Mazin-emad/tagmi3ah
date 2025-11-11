@@ -1,10 +1,20 @@
 import { createContext } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import type { Product } from "@/types";
+import type { Product } from "@/api/types";
+import type { CpuResponse } from "@/api/product/cpus";
+import type { MotherboardResponse } from "@/api/product/motherboards";
+import type { RamKitResponse } from "@/api/product/ramkits";
+import type { GpuResponse } from "@/api/product/gpus";
+import type { PsuResponse } from "@/api/product/psus";
+import type { PcCaseResponse } from "@/api/product/pccases";
+
+// Union type that handles all product response types
+// Note: Each response type already extends Product, so we use the union directly
+export type AnyProductResponse = CpuResponse | MotherboardResponse | RamKitResponse | GpuResponse | PsuResponse | PcCaseResponse;
 
 export interface MyItemsContextType {
-  items: Record<string, Product>;
-  setItems: Dispatch<SetStateAction<Record<string, Product>>>;
+  items: Record<string, AnyProductResponse>;
+  setItems: Dispatch<SetStateAction<Record<string, AnyProductResponse>>>;
   socket: { pSocket: string; mSocket: string };
   setSocket: Dispatch<SetStateAction<{ pSocket: string; mSocket: string }>>;
   powerConsumption: number;

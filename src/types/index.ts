@@ -1,15 +1,8 @@
-export interface Product {
-  id: string;
-  name: string;
-  image?: string;
-  price: number;
-  description: string;
-  category: string;
-  brand?: string;
-  brandName?: string;
-  stock: number;
-  socket?: string;
-  ramType?: string;
-  type?:string;
-  supportedMemoryTypes?: string[];
-}
+/**
+ * Centralized type exports
+ * All types should be imported from here or their specific module
+ */
+
+// Re-export all types from their modules
+export * from "./product";
+export * from "./cart";

@@ -1,14 +1,16 @@
 import { Link } from "react-router-dom";
 import SearchSection from "@/components/global/home/SearchSection";
 import { ProductCard } from "@/components/global/ProductCard";
-import { products as pp } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/imgs/hero.jpg";
 import { useProducts } from "@/hooks";
+import { LoadingPage } from "@/components/global/LoadingComponents";
+import { ErrorPage } from "@/components/global/ErrorComponents";
 
 const Home = () => {
-  const {data:products , isLoading,error}= useProducts();
-  console.log(products);
+  const { data: products, isLoading, error } = useProducts();
+  if (isLoading) return <LoadingPage message="Loading products..." />;
+  if (error) return <ErrorPage message="Error loading products" />;
   return (
     <main>
       <section className="bg-white dark:bg-gray-900">

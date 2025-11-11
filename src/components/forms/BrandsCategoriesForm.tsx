@@ -17,7 +17,7 @@ import { useCreateBrand, useUpdateBrand } from "@/hooks/useBrands";
 import { useCreateCategory, useUpdateCategory } from "@/hooks/useCategories";
 
 const FormSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  name: z.string().min(3, "Name must be at least 3 characters long"),
   type: z.enum(["brand", "category"]),
   id: z.number().optional(),
 });

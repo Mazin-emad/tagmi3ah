@@ -1,24 +1,9 @@
 import { jsonApiClient } from "./product/client";
 import type { AxiosResponse } from "axios";
+import type { CartItem, Cart, CartItemRequest } from "@/types/cart";
 
-export interface CartItem {
-  id: number;
-  productId: number;
-  quantity: number;
-  price: number;
-}
-
-export interface Cart {
-  id: number;
-  userId: number;
-  items: CartItem[];
-  total: number;
-}
-
-export interface CartItemRequest {
-  productId: number;
-  quantity: number;
-}
+// Re-export types for convenience
+export type { CartItem, Cart, CartItemRequest };
 
 export async function getMyCart(): Promise<Cart> {
   const res: AxiosResponse<Cart> = await jsonApiClient.get("/carts/me");
@@ -41,4 +26,8 @@ export async function updateCartItem(body: CartItemRequest): Promise<Cart> {
 
 export async function deleteCartItem(productId: number): Promise<void> {
   await jsonApiClient.delete(`/carts/me/${productId}`);
+}
+
+export async function deleteAllCartItems(): Promise<void> {
+  await jsonApiClient.delete(`/carts/me/clear`);
 }
