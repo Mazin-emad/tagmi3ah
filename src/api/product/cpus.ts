@@ -23,6 +23,7 @@ export type CpuResponse = Product & {
   threads?: number;
   baseClockGHz?: number;
   boostClockGHz?: number;
+  supportedMemoryTypes:string[];
   socket?: string;
   tdpW?: number;
 };

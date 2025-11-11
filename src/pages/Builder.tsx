@@ -1,13 +1,13 @@
 import Sidebar from "../components/ui/sidebar";
 import { BuilderProductRow } from "@/components/builder/BuilderProductRow";
-import {
-  CPUs,
-  Motherboards,
-  GPUs,
-  ramKits,
-  PowerSupply,
-  pcCases,
-} from "@/lib/constants";
+// import {
+//   CPUs,
+//   Motherboards,
+//   GPUs,
+//   ramKits,
+//   PowerSupply,
+//   pcCases,
+// } from "@/lib/constants";
 import { useContext } from "react";
 import { MyItemsContext } from "@/Context/myItemsContext";
 import {
@@ -18,18 +18,32 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
-
+import { useCpus } from "@/hooks/product/useCpus";
+import { useMotherboards } from "@/hooks/product/useMotherboards";
+import { useGpus } from "@/hooks/product/useGpus";
+import { useRamKits } from "@/hooks/product/useRamKits";
+import { usePsus } from "@/hooks/product/usePsus";
+import { usePcCases } from "@/hooks/product/usePcCases";
 type RamType = "DDR4" | "DDR5";
 
 const Builder = () => {
+  
   const context = useContext(MyItemsContext);
   const { currentShow, socket, ramType, items } = context;
-
+  const { data: cpus = [] } = useCpus();
+  const { data: motherboards } = useMotherboards();
+  const { data: gpus } = useGpus();
+  const { data: ramKits } = useRamKits();
+  const { data: psus } = usePsus();
+  const { data: pcCases } = usePcCases();
+  console.log(cpus);
+  // console.log(cpus[0].supportedMemoryTypes);
   // Get filtered products based on current selection
   const getFilteredProducts = () => {
     switch (currentShow) {
       case "CPUs":
-        return CPUs.filter((p) => {
+        let cpulist= cpus ?? [];
+        return cpulist.filter((p) => {
           const socketMatches =
             p.socket === socket.mSocket || socket.mSocket == "all";
           const ramMatches =
@@ -39,9 +53,11 @@ const Builder = () => {
           return socketMatches && ramMatches;
         });
       case "GPUs":
-        return GPUs;
+        let gpulist= gpus ?? [];
+        return gpulist;
       case "Motherboards":
-        return Motherboards.filter((p) => {
+        let MBlist = motherboards ?? [];
+        return MBlist.filter((p) => {
           const socketMatches =
             p.socket === socket.pSocket || socket.pSocket == "all";
           const ramMatches =
@@ -49,13 +65,16 @@ const Builder = () => {
           return socketMatches && ramMatches;
         });
       case "ramKits":
-        return ramKits.filter(
+        let ramlist =ramKits??[];
+        return ramlist.filter(
           (p) => ramType === (p.type as RamType) || ramType == "all"
         );
       case "PowerSupply":
-        return PowerSupply;
+        let psulist = psus ?? [];
+        return psulist;
       case "pcCases":
-        return pcCases;
+        let listpcCases = pcCases ?? [];
+        return listpcCases;
       default:
         return [];
     }
