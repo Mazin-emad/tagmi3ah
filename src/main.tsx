@@ -26,15 +26,15 @@ const isDev = import.meta.env.VITE_DEV === "true";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <MyItemsContextProvider>
-      <CartProvider>
-        <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <MyItemsContextProvider>
+        <CartProvider>
           <BrowserRouter>
             <App />
           </BrowserRouter>
           {isDev && <ReactQueryDevtools initialIsOpen={false} />}
-        </QueryClientProvider>
-      </CartProvider>
-    </MyItemsContextProvider>
+        </CartProvider>
+      </MyItemsContextProvider>
+    </QueryClientProvider>
   </StrictMode>
 );

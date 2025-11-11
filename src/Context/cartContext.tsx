@@ -1,23 +1,17 @@
-import { createContext, useContext, useState, useEffect, type ReactNode, type JSX } from "react";
+import { useState, useEffect, type ReactNode, type JSX } from "react";
 import type { Product } from "@/types";
+import { useAddToCart, useDeleteCartItem } from "@/hooks/useCart";
+import { CartContext } from "./cartContextBase";
 
 interface CartItem extends Product {
   quantity: number;
 }
 
-interface CartContextType {
-  items: CartItem[];
-  addItem: (product: Product) => void;
-  addItems: (products: Product[]) => void;
-  removeItem: (productId: string) => void;
-  clearCart: () => void;
-  getTotalPrice: () => number;
-  getItemCount: () => number;
-}
-
-const CartContext = createContext<CartContextType | undefined>(undefined);
-
-export function CartProvider({ children }: { children: ReactNode }): JSX.Element {
+export function CartProvider({
+  children,
+}: {
+  children: ReactNode;
+}): JSX.Element {
   const [items, setItems] = useState<CartItem[]>(() => {
     // Load from localStorage on mount
     if (typeof window !== "undefined") {
@@ -33,12 +27,21 @@ export function CartProvider({ children }: { children: ReactNode }): JSX.Element
     return [];
   });
 
+  // Server sync mutations (optimistic local-first UX)
+  const { mutate: addToServer } = useAddToCart();
+  const { mutate: deleteFromServer } = useDeleteCartItem();
+
   // Save to localStorage whenever items change
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem("cart", JSON.stringify(items));
     }
   }, [items]);
+
+  const toNumberId = (id: string): number | null => {
+    const n = Number(id);
+    return Number.isFinite(n) ? n : null;
+  };
 
   const addItem = (product: Product) => {
     setItems((prev) => {
@@ -52,6 +55,12 @@ export function CartProvider({ children }: { children: ReactNode }): JSX.Element
       }
       return [...prev, { ...product, quantity: 1 }];
     });
+
+    // Best-effort sync to server cart
+    const productIdNum = toNumberId(product.id);
+    if (productIdNum !== null) {
+      addToServer({ productId: productIdNum, quantity: 1 });
+    }
   };
 
   const addItems = (products: Product[]) => {
@@ -67,10 +76,24 @@ export function CartProvider({ children }: { children: ReactNode }): JSX.Element
       });
       return newItems;
     });
+
+    // Sync each added product to server (best-effort)
+    const uniqueIds = new Set<number>();
+    for (const p of products) {
+      const n = toNumberId(p.id);
+      if (n !== null && !uniqueIds.has(n)) {
+        uniqueIds.add(n);
+      }
+    }
+    uniqueIds.forEach((pid) => addToServer({ productId: pid, quantity: 1 }));
   };
 
   const removeItem = (productId: string) => {
     setItems((prev) => prev.filter((item) => item.id !== productId));
+    const productIdNum = toNumberId(productId);
+    if (productIdNum !== null) {
+      deleteFromServer(productIdNum);
+    }
   };
 
   const clearCart = () => {
@@ -101,12 +124,3 @@ export function CartProvider({ children }: { children: ReactNode }): JSX.Element
     </CartContext.Provider>
   );
 }
-
-export function useCart() {
-  const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error("useCart must be used within a CartProvider");
-  }
-  return context;
-}
-

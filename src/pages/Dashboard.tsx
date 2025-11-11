@@ -4,6 +4,7 @@ import BrandsCategoriesForm from "@/components/forms/BrandsCategoriesForm";
 import { BrandsTable, CategoriesTable } from "@/components/forms/BrandsCategoriesTable";
 import ProfileForm from "@/components/forms/ProfileForm";
 import ChangePasswordForm from "@/components/profile/ChangePasswordForm";
+import CartsTable from "@/components/admin/CartsTable";
 
 const Dashboard = () => {
   return (
@@ -20,6 +21,9 @@ const Dashboard = () => {
               </TabsTrigger>
               <TabsTrigger value="metadata" className="shrink-0 px-3 py-2 text-sm sm:text-base">
                 Brands & Categories
+              </TabsTrigger>
+              <TabsTrigger value="carts" className="shrink-0 px-3 py-2 text-sm sm:text-base">
+                Carts
               </TabsTrigger>
               <TabsTrigger value="profile" className="shrink-0 px-3 py-2 text-sm sm:text-base">
                 Update Profile
@@ -39,6 +43,9 @@ const Dashboard = () => {
                   <CategoriesTable />
                 </div>
               </div>
+            </TabsContent>
+            <TabsContent value="carts">
+              <CartsTable />
             </TabsContent>
             <TabsContent value="profile">
               <ProfileForm />

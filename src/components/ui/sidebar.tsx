@@ -5,7 +5,8 @@ import type { Product } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { XMarkIcon, ShoppingCartIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/Context/cartContext";
+import { useCart } from "@/Context/cartContextBase";
+import { useAddToCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 
 export default function Sidebar() {
@@ -18,6 +19,7 @@ export default function Sidebar() {
     currentShow,
   } = useContext(MyItemsContext);
   const { addItems } = useCart();
+  const { mutateAsync: addToCart } = useAddToCart();
 
   function removeItem(product: Product) {
     if (product.category === "CPU") {
@@ -79,21 +81,33 @@ export default function Sidebar() {
     0
   );
 
-  const handleAddBuildToCart = () => {
+  const handleAddBuildToCart = async () => {
     if (selectedProducts.length === 0) {
       toast.error("Please select at least one component");
       return;
     }
 
+    // Optimistic local cart update
     addItems(selectedProducts);
-    toast.success(
-      `Added ${selectedProducts.length} item${
-        selectedProducts.length > 1 ? "s" : ""
-      } to cart!`,
-      {
-        description: `Total: $${totalPrice.toFixed(2)}`,
-      }
-    );
+
+    // Sync with server cart
+    try {
+      await Promise.all(
+        selectedProducts.map((p) =>
+          addToCart({ productId: parseInt(p.id, 10), quantity: 1 })
+        )
+      );
+      toast.success(
+        `Added ${selectedProducts.length} item${
+          selectedProducts.length > 1 ? "s" : ""
+        } to cart!`,
+        {
+          description: `Total: $${totalPrice.toFixed(2)}`,
+        }
+      );
+    } catch (e: unknown) {
+      toast.error("Failed to sync cart with server");
+    }
   };
 
   return (

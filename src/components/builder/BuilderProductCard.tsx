@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useContext } from "react";
 import { MyItemsContext } from "@/Context/myItemsContext";
+import { useAddToCart } from "@/hooks/useCart";
+import { toast } from "sonner";
 
 export function BuilderProductCard({ product }: { product: Product }) {
   const {
@@ -18,11 +20,11 @@ export function BuilderProductCard({ product }: { product: Product }) {
     setSocket,
     setRamType: setramtype,
     items,
-    ramType: ramtype,
   } = useContext(MyItemsContext);
+  const { mutateAsync: addToCart } = useAddToCart();
 
   const handleSelect = () => {
-    setItems((prev: Record<string, any>) => ({
+    setItems((prev: Record<string, Product>) => ({
       ...prev,
       [product.category]: product,
     }));
@@ -77,7 +79,17 @@ export function BuilderProductCard({ product }: { product: Product }) {
           <div className="flex gap-2">
             <Button
               className="cursor-pointer"
-              onClick={() => console.log("Add to Cart")}
+              onClick={async () => {
+                try {
+                  await addToCart({
+                    productId: parseInt(product.id, 10),
+                    quantity: 1,
+                  });
+                  toast.success("Added to cart");
+                } catch {
+                  toast.error("Failed to add to cart");
+                }
+              }}
             >
               Add to Cart
             </Button>
