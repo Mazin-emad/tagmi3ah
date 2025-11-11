@@ -5,7 +5,8 @@ export interface Product {
   price: number;
   description: string;
   category: string;
-  brand: string;
+  brand?: string;
+  brandName?: string;
   stock: number;
   socket?: string;
   ramType?: string;

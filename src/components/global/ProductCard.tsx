@@ -18,7 +18,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <Link to={`/products/${product.id}`}>{product.name}</Link>
-          <Badge>{product.brand}</Badge>
+          <Badge>{product.brandName}</Badge>
         </CardTitle>
         <CardDescription>
           <Link to={`/products/${product.id}`}>{product.description}</Link>

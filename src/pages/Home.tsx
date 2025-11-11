@@ -1,11 +1,14 @@
 import { Link } from "react-router-dom";
 import SearchSection from "@/components/global/home/SearchSection";
 import { ProductCard } from "@/components/global/ProductCard";
-import { products } from "@/lib/constants";
+import { products as pp } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/imgs/hero.jpg";
+import { useProducts } from "@/hooks";
 
 const Home = () => {
+  const {data:products , isLoading,error}= useProducts();
+  console.log(products);
   return (
     <main>
       <section className="bg-white dark:bg-gray-900">
@@ -56,7 +59,7 @@ const Home = () => {
       <section>
         <div className="grid max-w-7xl px-4 mx-auto lg:gap-8 xl:gap-0">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => (
+            {products?.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
