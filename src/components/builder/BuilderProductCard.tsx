@@ -24,7 +24,7 @@ export function BuilderProductCard({ product }: { product: Product }) {
   const handleSelect = () => {
     setItems((prev: Record<string, Product>) => ({
       ...prev,
-      [product.category]: product,
+      [product.categoryName]: product,
     }));
     // console.log("hereeeeeeee",product)
     if (product.category === "CPU") {
@@ -66,7 +66,7 @@ export function BuilderProductCard({ product }: { product: Product }) {
       <CardContent>
         <Link to={`/products/${product.id}`}>
           <img
-            src={product.image}
+            src={product.imageUrl}
             alt={product.name}
             className="w-full aspect-square object-cover rounded-lg"
             loading="lazy"

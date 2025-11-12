@@ -28,5 +28,11 @@ export const queryKeys = {
     paged: (page: number, size: number) => ["categories", { page, size }] as const,
     byId: (id: number) => ["categories", "byId", id] as const,
   },
+  orders: {
+    all: ["orders"] as const,
+    byId: (id: number) => ["orders", "byId", id] as const,
+    me: ["orders", "me"] as const,
+    byUserId: (userId: number) => ["orders", "user", userId] as const,
+  },
 } as const;
 

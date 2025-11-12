@@ -1,475 +1,365 @@
+import { useState } from "react";
+import { useGetMyOrders, useCancelOrder } from "@/hooks";
+import { LoadingComponent } from "@/components/global/LoadingComponents";
+import { ErrorComponent } from "@/components/global/ErrorComponents";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatCurrency } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
+import type { OrderDto } from "@/api/types";
+
 const CheckOut = () => {
-  return (
-    <div className="bg-primary/10 sm:px-8 px-4 py-6">
-      <div className="max-w-screen-xl max-lg:max-w-xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-y-12 gap-8">
-          <div className="max-w-4xl w-full h-max rounded-md">
-            <form>
+  const { data: orders, isLoading, error, refetch } = useGetMyOrders();
+  const { mutate: cancelOrder, isPending: isCancelling } = useCancelOrder();
+  const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
+  const [orderToCancel, setOrderToCancel] = useState<number | null>(null);
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>My Orders</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-center py-12">
+              <LoadingComponent />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>My Orders</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ErrorComponent
+              message={error.message || "Failed to load orders"}
+              callback={() => refetch()}
+              callbackText="Retry"
+            />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!orders || orders.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>My Orders</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-12">
+              <p className="text-muted-foreground text-lg">
+                You don't have any orders yet.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status.toUpperCase()) {
+      case "PENDING":
+        return "secondary";
+      case "CONFIRMED":
+        return "default";
+      case "DELIVERED":
+        return "default";
+      case "CANCELED":
+      case "CANCELLED":
+        return "destructive";
+      default:
+        return "secondary";
+    }
+  };
+
+  const getPaymentStatusBadgeVariant = (status: string) => {
+    switch (status.toUpperCase()) {
+      case "PAID":
+        return "default";
+      case "PENDING":
+        return "secondary";
+      case "FAILED":
+        return "destructive";
+      case "CANCELED":
+        return "destructive";
+      default:
+        return "secondary";
+    }
+  };
+
+  const canCancelOrder = (order: OrderDto) => {
+    return order.orderStatus === "PENDING" && order.paymentStatus !== "PAID";
+  };
+
+  const handleCancelOrder = (orderId: number) => {
+    cancelOrder(orderId, {
+      onSuccess: () => {
+        toast.success("Order cancelled successfully");
+        setOrderToCancel(null);
+        refetch();
+      },
+      onError: (error) => {
+        toast.error(error.message || "Failed to cancel order");
+      },
+    });
+  };
+
+  const OrderDetailsRow = ({ order }: { order: OrderDto }) => {
+    if (expandedOrderId !== order.orderId) return null;
+
+    return (
+      <TableRow>
+        <TableCell colSpan={8} className="bg-muted/30">
+          <div className="py-4 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <h2 className="text-xl text-slate-900 font-semibold mb-6">
-                  Delivery Details
-                </h2>
-                <div className="grid lg:grid-cols-2 gap-y-6 gap-x-4">
-                  <div>
-                    <label className="text-sm text-slate-900 font-medium block mb-2">
-                      First Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter First Name"
-                      className="px-4 py-2.5 bg-white border border-gray-400 text-slate-900 w-full text-sm rounded-md focus:outline-blue-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-slate-900 font-medium block mb-2">
-                      Last Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter Last Name"
-                      className="px-4 py-2.5 bg-white border border-gray-400 text-slate-900 w-full text-sm rounded-md focus:outline-blue-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-slate-900 font-medium block mb-2">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      placeholder="Enter Email"
-                      className="px-4 py-2.5 bg-white border border-gray-400 text-slate-900 w-full text-sm rounded-md focus:outline-blue-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-slate-900 font-medium block mb-2">
-                      Phone No.
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="Enter Phone No."
-                      className="px-4 py-2.5 bg-white border border-gray-400 text-slate-900 w-full text-sm rounded-md focus:outline-blue-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-slate-900 font-medium block mb-2">
-                      Address Line
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter Address Line"
-                      className="px-4 py-2.5 bg-white border border-gray-400 text-slate-900 w-full text-sm rounded-md focus:outline-blue-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-slate-900 font-medium block mb-2">
-                      City
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter City"
-                      className="px-4 py-2.5 bg-white border border-gray-400 text-slate-900 w-full text-sm rounded-md focus:outline-blue-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-slate-900 font-medium block mb-2">
-                      State
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter State"
-                      className="px-4 py-2.5 bg-white border border-gray-400 text-slate-900 w-full text-sm rounded-md focus:outline-blue-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-slate-900 font-medium block mb-2">
-                      Zip Code
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter Zip Code"
-                      className="px-4 py-2.5 bg-white border border-gray-400 text-slate-900 w-full text-sm rounded-md focus:outline-blue-600"
-                    />
-                  </div>
+                <h4 className="font-semibold mb-2">Order Information</h4>
+                <div className="space-y-1 text-sm">
+                  <p>
+                    <span className="font-medium">Order ID:</span> #
+                    {order.orderId}
+                  </p>
+                  <p>
+                    <span className="font-medium">Order Date:</span>{" "}
+                    {formatDate(order.orderDate)}
+                  </p>
+                  <p>
+                    <span className="font-medium">Delivery Date:</span>{" "}
+                    {formatDate(order.deliveryDate)}
+                  </p>
+                  <p>
+                    <span className="font-medium">Payment Method:</span>{" "}
+                    <span className="capitalize">
+                      {order.paymentMethod.toLowerCase()}
+                    </span>
+                  </p>
                 </div>
               </div>
-
-              <div className="mt-10">
-                <h2 className="text-xl text-slate-900 font-semibold mb-6">
-                  Payment
-                </h2>
-                <div className="flex flex-wrap gap-y-6 gap-x-12 mt-4 mb-8">
-                  <div className="flex items-center">
-                    <input
-                      type="radio"
-                      name="pay-method"
-                      className="w-5 h-5 cursor-pointer"
-                      id="card"
-                      checked
-                    />
-                    <label
-                      htmlFor="card"
-                      className="ml-4 flex gap-2 cursor-pointer"
+              <div>
+                <h4 className="font-semibold mb-2">Order Items</h4>
+                <div className="space-y-2">
+                  {order.orderItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between text-sm border-b pb-2"
                     >
-                      <img
-                        src="https://readymadeui.com/images/visa.webp"
-                        className="w-12"
-                        alt="card1"
-                      />
-                      <img
-                        src="https://readymadeui.com/images/american-express.webp"
-                        className="w-12"
-                        alt="card2"
-                      />
-                      <img
-                        src="https://readymadeui.com/images/master.webp"
-                        className="w-12"
-                        alt="card3"
-                      />
-                    </label>
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="radio"
-                      name="pay-method"
-                      className="w-5 h-5 cursor-pointer"
-                      id="paypal"
-                    />
-                    <label
-                      htmlFor="paypal"
-                      className="ml-4 flex gap-2 cursor-pointer"
-                    >
-                      <img
-                        src="https://readymadeui.com/images/paypal.webp"
-                        className="w-20"
-                        alt="paypalCard"
-                      />
-                    </label>
-                  </div>
-                </div>
-                <div className="grid lg:grid-cols-2 gap-y-6 gap-x-4">
-                  <div>
-                    <label className="text-sm text-slate-900 font-medium block mb-2">
-                      Cardholder's Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter Cardholder's Name"
-                      className="px-4 py-2.5 bg-white border border-gray-400 text-slate-900 w-full text-sm rounded-md focus:outline-blue-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-slate-900 font-medium block mb-2">
-                      Card Number
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter Card Number"
-                      className="px-4 py-2.5 bg-white border border-gray-400 text-slate-900 w-full text-sm rounded-md focus:outline-blue-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-slate-900 font-medium block mb-2">
-                      Expiry
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter EXP."
-                      className="px-4 py-2.5 bg-white border border-gray-400 text-slate-900 w-full text-sm rounded-md focus:outline-blue-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-slate-900 font-medium block mb-2">
-                      CVV
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter CVV"
-                      className="px-4 py-2.5 bg-white border border-gray-400 text-slate-900 w-full text-sm rounded-md focus:outline-blue-600"
-                    />
-                  </div>
-                </div>
-                <div className="flex gap-4 max-lg:flex-col mt-8">
-                  <button
-                    type="button"
-                    className="rounded-md px-4 py-2.5 w-full text-sm font-medium tracking-wide bg-gray-200 hover:bg-gray-300 border border-gray-300 text-slate-900 max-lg:order-1 cursor-pointer"
-                  >
-                    Continue Shopping
-                  </button>
-                  <button
-                    type="button"
-                    className="rounded-md px-4 py-2.5 w-full text-sm font-medium tracking-wide bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-                  >
-                    Complete Purchase
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-
-          <div className="max-lg:-order-1">
-            <h2 className="text-xl text-slate-900 font-semibold mb-6">
-              Order Summary
-            </h2>
-            <div className="relative bg-white border border-gray-300 rounded-md">
-              <div className="px-6 py-8 md:overflow-auto">
-                <div className="space-y-4">
-                  <div className="flex gap-4 max-sm:flex-col">
-                    <div className="w-24 h-24 shrink-0 bg-purple-50 p-2 rounded-md">
-                      <img
-                        src="https://readymadeui.com/images/product14.webp"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <div className="w-full flex justify-between gap-4">
-                      <div>
-                        <h3 className="text-sm font-medium text-slate-900">
-                          Velvet Sneaker
-                        </h3>
-                        <p className="text-sm font-medium text-slate-500 mt-2">
-                          Black/White
-                        </p>
-                        <h6 className="text-[15px] text-slate-900 font-semibold mt-4">
-                          $18.00
-                        </h6>
-                      </div>
-                      <div className="flex flex-col justify-between items-end gap-4">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={item.product.image}
+                          alt={item.product.name}
+                          className="w-12 h-12 object-cover rounded"
+                        />
                         <div>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="w-4 fill-red-500 inline cursor-pointer"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              d="M19 7a1 1 0 0 0-1 1v11.191A1.92 1.92 0 0 1 15.99 21H8.01A1.92 1.92 0 0 1 6 19.191V8a1 1 0 0 0-2 0v11.191A3.918 3.918 0 0 0 8.01 23h7.98A3.918 3.918 0 0 0 20 19.191V8a1 1 0 0 0-1-1Zm1-3h-4V2a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v2H4a1 1 0 0 0 0 2h16a1 1 0 0 0 0-2ZM10 4V3h4v1Z"
-                              data-original="#000000"
-                            ></path>
-                            <path
-                              d="M11 17v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Zm4 0v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Z"
-                              data-original="#000000"
-                            ></path>
-                          </svg>
-                        </div>
-                        <div className="flex items-center px-2.5 py-1.5 border border-gray-400 text-slate-900 text-xs font-medium outline-0 bg-transparent rounded-md">
-                          <button
-                            type="button"
-                            className="cursor-pointer border-0 outline-0"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="w-2.5 fill-current"
-                              viewBox="0 0 124 124"
-                            >
-                              <path
-                                d="M112 50H12C5.4 50 0 55.4 0 62s5.4 12 12 12h100c6.6 0 12-5.4 12-12s-5.4-12-12-12z"
-                                data-original="#000000"
-                              ></path>
-                            </svg>
-                          </button>
-                          <span className="mx-3">1</span>
-                          <button
-                            type="button"
-                            className="cursor-pointer border-0 outline-0"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="w-2.5 fill-current"
-                              viewBox="0 0 42 42"
-                            >
-                              <path
-                                d="M37.059 16H26V4.941C26 2.224 23.718 0 21 0s-5 2.224-5 4.941V16H4.941C2.224 16 0 18.282 0 21s2.224 5 4.941 5H16v11.059C16 39.776 18.282 42 21 42s5-2.224 5-4.941V26h11.059C39.776 26 42 23.718 42 21s-2.224-5-4.941-5z"
-                                data-original="#000000"
-                              ></path>
-                            </svg>
-                          </button>
+                          <p className="font-medium">{item.product.name}</p>
+                          <p className="text-muted-foreground text-xs">
+                            Qty: {item.quantity} × {formatCurrency(item.price)}
+                          </p>
                         </div>
                       </div>
+                      <p className="font-semibold">
+                        {formatCurrency(item.price * item.quantity)}
+                      </p>
                     </div>
-                  </div>
-
-                  <hr className="border-gray-300" />
-
-                  <div className="flex gap-4 max-sm:flex-col">
-                    <div className="w-24 h-24 shrink-0 bg-purple-50 p-2 rounded-md">
-                      <img
-                        src="https://readymadeui.com/images/watch5.webp"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <div className="w-full flex justify-between gap-4">
-                      <div>
-                        <h3 className="text-sm font-medium text-slate-900">
-                          Smart Watch Timex
-                        </h3>
-                        <p className="text-sm font-medium text-slate-500 mt-2">
-                          Gray
-                        </p>
-                        <h6 className="text-[15px] text-slate-900 font-semibold mt-4">
-                          $90.00
-                        </h6>
-                      </div>
-                      <div className="flex flex-col justify-between items-end gap-4">
-                        <div>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="w-4 fill-red-500 inline cursor-pointer"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              d="M19 7a1 1 0 0 0-1 1v11.191A1.92 1.92 0 0 1 15.99 21H8.01A1.92 1.92 0 0 1 6 19.191V8a1 1 0 0 0-2 0v11.191A3.918 3.918 0 0 0 8.01 23h7.98A3.918 3.918 0 0 0 20 19.191V8a1 1 0 0 0-1-1Zm1-3h-4V2a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v2H4a1 1 0 0 0 0 2h16a1 1 0 0 0 0-2ZM10 4V3h4v1Z"
-                              data-original="#000000"
-                            ></path>
-                            <path
-                              d="M11 17v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Zm4 0v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Z"
-                              data-original="#000000"
-                            ></path>
-                          </svg>
-                        </div>
-                        <div className="flex items-center px-2.5 py-1.5 border border-gray-400 text-slate-900 text-xs font-medium outline-0 bg-transparent rounded-md">
-                          <button
-                            type="button"
-                            className="cursor-pointer border-0 outline-0"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="w-2.5 fill-current"
-                              viewBox="0 0 124 124"
-                            >
-                              <path
-                                d="M112 50H12C5.4 50 0 55.4 0 62s5.4 12 12 12h100c6.6 0 12-5.4 12-12s-5.4-12-12-12z"
-                                data-original="#000000"
-                              ></path>
-                            </svg>
-                          </button>
-                          <span className="mx-3">1</span>
-                          <button
-                            type="button"
-                            className="cursor-pointer border-0 outline-0"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="w-2.5 fill-current"
-                              viewBox="0 0 42 42"
-                            >
-                              <path
-                                d="M37.059 16H26V4.941C26 2.224 23.718 0 21 0s-5 2.224-5 4.941V16H4.941C2.224 16 0 18.282 0 21s2.224 5 4.941 5H16v11.059C16 39.776 18.282 42 21 42s5-2.224 5-4.941V26h11.059C39.776 26 42 23.718 42 21s-2.224-5-4.941-5z"
-                                data-original="#000000"
-                              ></path>
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <hr className="border-gray-300" />
-
-                  <div className="flex gap-4 max-sm:flex-col">
-                    <div className="w-24 h-24 shrink-0 bg-purple-50 p-2 rounded-md">
-                      <img
-                        src="https://readymadeui.com/images/dark-green-tshirt-2.webp"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <div className="w-full flex justify-between gap-4">
-                      <div>
-                        <h3 className="text-sm font-medium text-slate-900">
-                          T-shirt
-                        </h3>
-                        <p className="text-sm font-medium text-slate-500 mt-2">
-                          Dark Green
-                        </p>
-                        <h6 className="text-[15px] text-slate-900 font-semibold mt-4">
-                          $20.00
-                        </h6>
-                      </div>
-                      <div className="flex flex-col justify-between items-end gap-4">
-                        <div>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="w-4 fill-red-500 inline cursor-pointer"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              d="M19 7a1 1 0 0 0-1 1v11.191A1.92 1.92 0 0 1 15.99 21H8.01A1.92 1.92 0 0 1 6 19.191V8a1 1 0 0 0-2 0v11.191A3.918 3.918 0 0 0 8.01 23h7.98A3.918 3.918 0 0 0 20 19.191V8a1 1 0 0 0-1-1Zm1-3h-4V2a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v2H4a1 1 0 0 0 0 2h16a1 1 0 0 0 0-2ZM10 4V3h4v1Z"
-                              data-original="#000000"
-                            ></path>
-                            <path
-                              d="M11 17v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Zm4 0v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Z"
-                              data-original="#000000"
-                            ></path>
-                          </svg>
-                        </div>
-                        <div>
-                          <div className="flex items-center px-2.5 py-1.5 border border-gray-400 text-slate-900 text-xs font-medium outline-0 bg-transparent rounded-md">
-                            <button
-                              type="button"
-                              className="cursor-pointer border-0 outline-0"
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="w-2.5 fill-current"
-                                viewBox="0 0 124 124"
-                              >
-                                <path
-                                  d="M112 50H12C5.4 50 0 55.4 0 62s5.4 12 12 12h100c6.6 0 12-5.4 12-12s-5.4-12-12-12z"
-                                  data-original="#000000"
-                                ></path>
-                              </svg>
-                            </button>
-                            <span className="mx-3">1</span>
-                            <button
-                              type="button"
-                              className="cursor-pointer border-0 outline-0"
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="w-2.5 fill-current"
-                                viewBox="0 0 42 42"
-                              >
-                                <path
-                                  d="M37.059 16H26V4.941C26 2.224 23.718 0 21 0s-5 2.224-5 4.941V16H4.941C2.224 16 0 18.282 0 21s2.224 5 4.941 5H16v11.059C16 39.776 18.282 42 21 42s5-2.224 5-4.941V26h11.059C39.776 26 42 23.718 42 21s-2.224-5-4.941-5z"
-                                  data-original="#000000"
-                                ></path>
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-                <hr className="border-gray-300 my-6" />
-                <div>
-                  <ul className="text-slate-500 font-medium space-y-4">
-                    <li className="flex flex-wrap gap-4 text-sm">
-                      Subtotal{" "}
-                      <span className="ml-auto font-semibold text-slate-900">
-                        $102.00
-                      </span>
-                    </li>
-                    <li className="flex flex-wrap gap-4 text-sm">
-                      Shipping{" "}
-                      <span className="ml-auto font-semibold text-slate-900">
-                        $6.00
-                      </span>
-                    </li>
-                    <li className="flex flex-wrap gap-4 text-sm">
-                      Tax{" "}
-                      <span className="ml-auto font-semibold text-slate-900">
-                        $5.00
-                      </span>
-                    </li>
-                    <hr className="border-slate-300" />
-                    <li className="flex flex-wrap gap-4 text-[15px] font-semibold text-slate-900">
-                      Total <span className="ml-auto">$113.00</span>
-                    </li>
-                  </ul>
+                <div className="mt-3 pt-3 border-t">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold">Total:</span>
+                    <span className="text-lg font-bold">
+                      {formatCurrency(order.totalCost)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </TableCell>
+      </TableRow>
+    );
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>My Orders</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <div className="max-h-[70vh] overflow-y-auto">
+              <Table>
+                <TableHeader className="sticky top-0 bg-background z-10">
+                  <TableRow>
+                    <TableHead className="w-12"></TableHead>
+                    <TableHead className="w-24">Order ID</TableHead>
+                    <TableHead className="min-w-[180px]">Order Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Payment Status</TableHead>
+                    <TableHead>Payment Method</TableHead>
+                    <TableHead className="text-center">Items</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {orders.map((order) => {
+                    const itemsCount = order.orderItems.reduce(
+                      (sum, item) => sum + item.quantity,
+                      0
+                    );
+                    const isExpanded = expandedOrderId === order.orderId;
+                    return (
+                      <>
+                        <TableRow
+                          key={order.orderId}
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() =>
+                            setExpandedOrderId(
+                              isExpanded ? null : order.orderId
+                            )
+                          }
+                        >
+                          <TableCell>
+                            {isExpanded ? (
+                              <ChevronUpIcon className="h-4 w-4" />
+                            ) : (
+                              <ChevronDownIcon className="h-4 w-4" />
+                            )}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            #{order.orderId}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            {formatDate(order.orderDate)}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={getStatusBadgeVariant(order.orderStatus)}
+                            >
+                              {order.orderStatus}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={getPaymentStatusBadgeVariant(
+                                order.paymentStatus
+                              )}
+                            >
+                              {order.paymentStatus}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="capitalize">
+                            {order.paymentMethod.toLowerCase()}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {itemsCount}
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">
+                            {formatCurrency(order.totalCost)}
+                          </TableCell>
+                          <TableCell
+                            className="text-right"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {canCancelOrder(order) && (
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => setOrderToCancel(order.orderId)}
+                                disabled={isCancelling}
+                              >
+                                Cancel
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                        <OrderDetailsRow order={order} />
+                      </>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Cancel Order Confirmation Dialog */}
+      <Dialog
+        open={orderToCancel !== null}
+        onOpenChange={(open) => !open && setOrderToCancel(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Order</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to cancel order #{orderToCancel}? This
+              action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setOrderToCancel(null)}
+              disabled={isCancelling}
+            >
+              No, Keep Order
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => orderToCancel && handleCancelOrder(orderToCancel)}
+              disabled={isCancelling}
+            >
+              {isCancelling ? "Cancelling..." : "Yes, Cancel Order"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

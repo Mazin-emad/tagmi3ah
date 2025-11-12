@@ -2,11 +2,14 @@ import { Routes, Route } from "react-router-dom";
 import Layout from "./components/navigation/Layout";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
-import Product from "./pages/Product";
+import ProductPage from "./pages/Product";
 import Dashboard from "./pages/Dashboard";
 import Builder from "./pages/Builder";
 import About from "./pages/About";
 import CheckOut from "./pages/CheckOut";
+import Cart from "./pages/Cart";
+import CheckoutSuccess from "./pages/CheckoutSuccess";
+import CheckoutFailure from "./pages/CheckoutFailure";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -63,8 +66,11 @@ const App = () => {
         />
         <Route path="/chat" element={<Chat />} />
         <Route index element={<Home />} />
+        <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<CheckOut />} />
-        <Route path="/products/:id" element={<Product />} />
+        <Route path="/checkout/success" element={<CheckoutSuccess />} />
+        <Route path="/checkout/failure" element={<CheckoutFailure />} />
+        <Route path="/products/:id" element={<ProductPage />} />
         <Route path="/about" element={<About />} />
         <Route
           path="/dashboard"

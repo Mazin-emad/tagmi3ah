@@ -1,8 +1,8 @@
 import {
-  Dialog,
+  Dialog as HeadlessDialog,
   DialogBackdrop,
   DialogPanel,
-  DialogTitle,
+  DialogTitle as HeadlessDialogTitle,
 } from "@headlessui/react";
 import {
   XMarkIcon,
@@ -16,6 +16,7 @@ import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { toast } from "sonner";
+import { usePrepareOrder } from "@/hooks";
 
 interface SideCartProps {
   open: boolean;
@@ -33,10 +34,35 @@ export default function SideCart({ open, onClose }: SideCartProps) {
     clearCart,
   } = useCart();
   const [isClearing, setIsClearing] = useState(false);
+  const { mutate: prepareOrder, isPending: isPreparingOrder } =
+    usePrepareOrder();
 
   const handleCheckout = () => {
-    onClose();
-    navigate("/checkout");
+    if (items.length === 0) {
+      toast.error("Your cart is empty");
+      return;
+    }
+
+    // Call prepareOrder with CARD payment method (default)
+    // The server will return a Stripe URL for card payments
+    prepareOrder(
+      { paymentMethod: "CARD" },
+      {
+        onSuccess: (response) => {
+          if (response.url) {
+            // Redirect to Stripe checkout page
+            window.location.href = response.url;
+          } else {
+            // If no URL, navigate to checkout page
+            onClose();
+            navigate("/checkout");
+          }
+        },
+        onError: (error) => {
+          toast.error(error.message || "Failed to prepare order");
+        },
+      }
+    );
   };
 
   const handleContinueShopping = () => {
@@ -76,7 +102,7 @@ export default function SideCart({ open, onClose }: SideCartProps) {
 
   return (
     <div>
-      <Dialog open={open} onClose={onClose} className="relative z-10">
+      <HeadlessDialog open={open} onClose={onClose} className="relative z-10">
         <DialogBackdrop
           transition
           className="fixed inset-0 bg-gray-500/75 transition-opacity duration-500 ease-in-out data-closed:opacity-0"
@@ -92,9 +118,9 @@ export default function SideCart({ open, onClose }: SideCartProps) {
                 <div className="flex h-full flex-col overflow-y-auto bg-white shadow-xl">
                   <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
                     <div className="flex items-start justify-between">
-                      <DialogTitle className="text-lg font-medium text-gray-900">
+                      <HeadlessDialogTitle className="text-lg font-medium text-gray-900">
                         Shopping cart
-                      </DialogTitle>
+                      </HeadlessDialogTitle>
                       <div className="ml-3 flex h-7 items-center gap-2">
                         {items.length > 0 && (
                           <Button
@@ -146,7 +172,7 @@ export default function SideCart({ open, onClose }: SideCartProps) {
                                 <div className="size-24 shrink-0 overflow-hidden rounded-md border border-gray-200">
                                   <img
                                     alt={item.name}
-                                    src={item.image}
+                                    src={item.imageUrl}
                                     className="size-full object-cover"
                                   />
                                 </div>
@@ -248,9 +274,17 @@ export default function SideCart({ open, onClose }: SideCartProps) {
                       <button
                         type="button"
                         onClick={handleCheckout}
-                        className="flex items-center cursor-pointer w-full justify-center rounded-md border border-transparent bg-indigo-600 px-6 py-3 text-base font-medium text-white shadow-xs hover:bg-indigo-700"
+                        disabled={isPreparingOrder}
+                        className="flex items-center cursor-pointer w-full justify-center rounded-md border border-transparent bg-indigo-600 px-6 py-3 text-base font-medium text-white shadow-xs hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Checkout
+                        {isPreparingOrder ? (
+                          <>
+                            <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                            Processing...
+                          </>
+                        ) : (
+                          "Checkout"
+                        )}
                       </button>
                     </div>
                     <div className="mt-6 flex justify-center text-center text-sm text-gray-500">
@@ -272,7 +306,7 @@ export default function SideCart({ open, onClose }: SideCartProps) {
             </div>
           </div>
         </div>
-      </Dialog>
+      </HeadlessDialog>
     </div>
   );
 }

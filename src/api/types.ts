@@ -1,3 +1,5 @@
+import type { Product } from "@/types";
+
 /**
  * Core API error type
  */
@@ -210,3 +212,58 @@ export interface PagedResponse<T> {
   totalElements: number;
   totalPages: number;
 }
+
+// ============================================================================
+// ORDER DTOs
+// ============================================================================
+
+export type OrderStatus = "PENDING" | "CANCELED" | "CONFIRMED" | "DELIVERED" | "CANCELLED";
+export type PaymentStatus = "PAID" | "CANCELED" | "FAILED" | "PENDING" | "UNPAID";
+export type PaymentMethod = "CARD" | "CASH";
+
+export interface ProductDto {
+  id: number;
+  name: string;
+  categoryId: number;
+  imageUrl: string;
+  price: number;
+  stock: number;
+}
+
+export interface OrderItemDto {
+  id: number;
+  product: ProductDto;
+  quantity: number;
+  price: number;
+}
+
+export interface OrderDto {
+  orderId: number;
+  userId: number;
+  totalCost: number;
+  paymentStatus: PaymentStatus;
+  orderStatus: OrderStatus;
+  paymentMethod: PaymentMethod;
+  orderDate: string; // ISO date-time
+  deliveryDate: string; // ISO date-time
+  orderItems: OrderItemDto[];
+}
+
+export interface OrderStatusRequest {
+  orderStatus: "PENDING" | "CANCELED" | "CONFIRMED" | "DELIVERED";
+  paymentStatus: "PAID" | "CANCELED" | "FAILED" | "PENDING";
+}
+
+export interface OrderPaymentRequest {
+  paymentMethod: "CARD" | "CASH";
+}
+
+export interface OrderPaymentResponse {
+  orderId: number;
+  userId: number;
+  amount: number;
+  url: string;
+  currency: string;
+}
+
+export type OrdersResponse = OrderDto[];

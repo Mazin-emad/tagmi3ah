@@ -5,7 +5,7 @@
 export interface Product {
   id: string;
   name: string;
-  image: string;
+  imageUrl: string;
   price: number;
   description: string;
   categoryName: string;
@@ -19,4 +19,3 @@ export interface Product {
   type?: string; // Product type (e.g., for RAM kits)
   supportedMemoryTypes?: string[];
 }
-

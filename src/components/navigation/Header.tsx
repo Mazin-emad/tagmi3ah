@@ -15,7 +15,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
-import SideCart from "../global/cart/SideCart";
 import { useMe, useLogout } from "@/hooks";
 import { toast } from "sonner";
 import { useCart } from "@/Context/cartContextBase";
@@ -28,14 +27,12 @@ const navigation = [
 
 export default function Header() {
   const [open, setOpen] = useState(false);
-  const [cartOpen, setCartOpen] = useState(false);
   const { data: user } = useMe();
   const { mutate: logout } = useLogout();
   const navigate = useNavigate();
   const { getItemCount } = useCart();
   const handleCartOpen = () => {
-    setCartOpen(true);
-    navigate("/checkout");
+    navigate("/cart");
   };
 
   const handleLogout = () => {
@@ -287,7 +284,6 @@ export default function Header() {
           </div>
         </nav>
       </header>
-      <SideCart open={cartOpen} onClose={() => setCartOpen(false)} />
     </div>
   );
 }

@@ -29,6 +29,16 @@ export type {
   UpdateMetadataResponse,
   UpdateMeRequest,
   UpdateMeResponse,
+  OrderDto,
+  OrdersResponse,
+  OrderStatusRequest,
+  OrderPaymentRequest,
+  OrderPaymentResponse,
+  OrderStatus,
+  PaymentStatus,
+  PaymentMethod,
+  ProductDto,
+  OrderItemDto,
 } from "./types";
 
 export { AuthError } from "./types";
@@ -39,6 +49,16 @@ export { authApi } from "./auth";
 export { usersApi } from "./users";
 export { productsApi } from "./products";
 export { metadataApi } from "./metadata";
+export {
+  getOrderById,
+  updateOrderStatus,
+  cancelOrder,
+  prepareOrder,
+  getAllOrders,
+  getOrdersByUserId,
+  getMyOrders,
+  handleStripeWebhook,
+} from "./orders";
 
 // Query Keys
 export { queryKeys } from "./queryKeys";

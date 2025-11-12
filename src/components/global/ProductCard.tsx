@@ -37,7 +37,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
       <CardContent>
         <Link to={`/products/${product.id}`}>
           <img
-            src={product.image}
+            src={product.imageUrl}
             alt={product.name}
             className="w-full aspect-square object-cover rounded-lg"
           />
@@ -56,7 +56,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
               >
                 <MinusIcon className="h-4 w-4" />
               </Button>
-              <span className="text-sm font-medium min-w-[2rem] text-center">
+              <span className="text-sm font-medium min-w-8 text-center">
                 {quantity}
               </span>
               <Button

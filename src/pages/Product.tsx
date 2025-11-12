@@ -14,10 +14,10 @@ import type { MotherboardResponse } from "@/api/product/motherboards";
 import type { RamKitResponse } from "@/api/product/ramkits";
 import type { PsuResponse } from "@/api/product/psus";
 import type { PcCaseResponse } from "@/api/product/pccases";
-import type { Product } from "@/types";
+import type { Product } from "@/api/types";
 import AddToCartButton from "@/components/global/cart/AddToCartButton";
 
-const Product = () => {
+const ProductPage = () => {
   const { id } = useParams();
   const numericId = id ? Number(id) : undefined;
   const { data, isLoading, isError } = useGetProductById(numericId);
@@ -126,7 +126,7 @@ const Product = () => {
       <div className="max-w-7xl mx-auto px-4 -mt-4">
         <AddToCartButton
           productId={Number(numericId)}
-          product={base as Product}
+          product={base as unknown as Product}
           className="w-full sm:w-auto"
         />
       </div>
@@ -134,4 +134,4 @@ const Product = () => {
   );
 };
 
-export default Product;
+export default ProductPage;
