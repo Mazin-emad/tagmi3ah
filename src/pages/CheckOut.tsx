@@ -190,7 +190,7 @@ const CheckOut = () => {
                     >
                       <div className="flex items-center gap-3">
                         <img
-                          src={item.product.image}
+                          src={item.product.imageUrl}
                           alt={item.product.name}
                           className="w-12 h-12 object-cover rounded"
                         />
