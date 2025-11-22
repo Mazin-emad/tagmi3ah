@@ -1,4 +1,4 @@
-import { Button } from "@headlessui/react";
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
 export const ErrorPage = ({ message }: { message: string }) => {
@@ -27,14 +27,9 @@ export const ErrorComponent = ({
   callbackText: string;
 }) => {
   return (
-    <div className="text-center">
+    <div className="text-center space-y-4">
       <p className="text-lg text-red-500">{message}</p>
-      <Button
-        onClick={callback}
-        className="bg-primary text-white p-2 rounded-md"
-      >
-        {callbackText}
-      </Button>
+      <Button onClick={callback}>{callbackText}</Button>
     </div>
   );
 };

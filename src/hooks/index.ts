@@ -44,3 +44,6 @@ export {
   useGetMyOrders,
   useHandleStripeWebhook,
 } from "./useOrders";
+
+// Chat hooks
+export { useChat } from "./useChat";
