@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import ProductForm from "@/components/forms/ProductForm";
 import BrandsCategoriesForm from "@/components/forms/BrandsCategoriesForm";
@@ -6,8 +7,19 @@ import ProfileForm from "@/components/forms/ProfileForm";
 import ChangePasswordForm from "@/components/profile/ChangePasswordForm";
 import CartsTable from "@/components/admin/CartsTable";
 import OrdersTable from "@/components/admin/OrdersTable";
+import ProductsTable from "@/components/ui/ProductsTable";
+import EditProductDialog from "@/components/ui/EditProductDialog";
+import type { Product } from "@/api/types";
 
 const Dashboard = () => {
+  const [editOpen, setEditOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  const handleEdit = (product: Product) => {
+    setSelectedProduct(product);
+    setEditOpen(true);
+  };
+
   return (
     <main>
       <section className="grid max-w-7xl py-4 px-4 mx-auto gap-4 lg:gap-8 xl:gap-2 lg:py-8">
@@ -37,7 +49,15 @@ const Dashboard = () => {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="product">
-              <ProductForm />
+              <div className="grid gap-6">
+                <ProductForm />
+                <ProductsTable onEdit={handleEdit} />
+                <EditProductDialog
+                  open={editOpen}
+                  onOpenChange={setEditOpen}
+                  product={selectedProduct}
+                />
+              </div>
             </TabsContent>
             <TabsContent value="metadata">
               <div className="grid gap-6">
