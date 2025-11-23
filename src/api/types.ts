@@ -267,3 +267,28 @@ export interface OrderPaymentResponse {
 }
 
 export type OrdersResponse = OrderDto[];
+
+// ============================================================================
+// CHAT DTOs
+// ============================================================================
+
+export type ChatRole = "user" | "assistant";
+
+export interface ChatMessage {
+  role: ChatRole;
+  content: string;
+  timestamp?: string;
+}
+
+export interface ChatRequest {
+  message: string;
+  conversationHistory?: ChatMessage[];
+}
+
+export interface ChatResponse {
+  message: string;
+  usage?: {
+    promptTokens?: number;
+    completionTokens?: number;
+  };
+}

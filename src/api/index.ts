@@ -39,6 +39,10 @@ export type {
   PaymentMethod,
   ProductDto,
   OrderItemDto,
+  ChatMessage,
+  ChatRequest,
+  ChatResponse,
+  ChatRole,
 } from "./types";
 
 export { AuthError } from "./types";
@@ -59,6 +63,7 @@ export {
   getMyOrders,
   handleStripeWebhook,
 } from "./orders";
+export { sendChatMessage } from "./chat";
 
 // Query Keys
 export { queryKeys } from "./queryKeys";

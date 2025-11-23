@@ -4,13 +4,11 @@ import { ProductCard } from "@/components/global/ProductCard";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/imgs/hero.jpg";
 import { useProducts } from "@/hooks";
-import { LoadingPage } from "@/components/global/LoadingComponents";
-import { ErrorPage } from "@/components/global/ErrorComponents";
+import { LoadingComponent } from "@/components/global/LoadingComponents";
+import { ErrorComponent } from "@/components/global/ErrorComponents";
 
 const Home = () => {
-  const { data: products, isLoading, error } = useProducts();
-  if (isLoading) return <LoadingPage message="Loading products..." />;
-  if (error) return <ErrorPage message="Error loading products" />;
+  const { data: products, isLoading, error, refetch } = useProducts();
   return (
     <main>
       <section className="bg-white dark:bg-gray-900">
@@ -60,11 +58,23 @@ const Home = () => {
       <SearchSection />
       <section>
         <div className="grid max-w-7xl px-4 mx-auto lg:gap-8 xl:gap-0">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {products?.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          {isLoading ? (
+            <LoadingComponent />
+          ) : error ? (
+            <ErrorComponent
+              message="Error loading products"
+              callback={() => {
+                refetch();
+              }}
+              callbackText="Try again"
+            />
+          ) : (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {products?.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
         </div>
         <div className="flex justify-center py-8">
           <Button
