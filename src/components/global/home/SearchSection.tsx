@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -22,6 +24,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useBrandsPaged } from "@/hooks/useBrands";
 import { useCategoriesPaged } from "@/hooks/useCategories";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+
 const FormSchema = z.object({
   category: z.string().optional(),
   brand: z.array(z.string()).optional(),
@@ -29,21 +33,118 @@ const FormSchema = z.object({
 });
 
 const SearchSection = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Initialize form from URL params
+  const categoryParam = searchParams.get("category") || "";
+  const brandParam = searchParams.get("brand");
+  // Brand names are stored in URL (not IDs) for easier filtering
+  const brandsArray = brandParam ? brandParam.split(",").filter(Boolean) : [];
+  const searchParam = searchParams.get("search") || "";
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      category: "",
-      brand: [],
-      search: "",
+      category: categoryParam,
+      brand: brandsArray,
+      search: searchParam,
     },
   });
 
-  const { data: categories } = useCategoriesPaged({ page: 0, size: 10 });
-  const { data: brands } = useBrandsPaged({ page: 0, size: 10 });
+  const { data: categories } = useCategoriesPaged({ page: 0, size: 100 });
+  const { data: brands } = useBrandsPaged({ page: 0, size: 100 });
+
+  // Update form when URL params change
+  useEffect(() => {
+    form.setValue("category", categoryParam);
+    form.setValue("brand", brandsArray);
+    form.setValue("search", searchParam);
+  }, [categoryParam, brandParam, searchParam, form]);
+
+  const updateURLParams = (data: z.infer<typeof FormSchema>) => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    
+    // Update category
+    if (data.category && data.category !== "") {
+      newSearchParams.set("category", data.category);
+    } else {
+      newSearchParams.delete("category");
+    }
+
+    // Update brands
+    if (data.brand && data.brand.length > 0) {
+      newSearchParams.set("brand", data.brand.join(","));
+    } else {
+      newSearchParams.delete("brand");
+    }
+
+    // Update search
+    if (data.search && data.search.trim() !== "") {
+      newSearchParams.set("search", data.search.trim());
+    } else {
+      newSearchParams.delete("search");
+    }
+
+    // Reset to page 1 when filters change
+    newSearchParams.delete("page");
+    
+    setSearchParams(newSearchParams, { replace: true });
+  };
 
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
-    console.log(data);
+    updateURLParams(data);
   };
+
+  const handleCategorySelect = (categoryName: string) => {
+    const newCategory = categoryName === "All Products" ? "" : categoryName;
+    form.setValue("category", newCategory);
+    updateURLParams({ ...form.getValues(), category: newCategory });
+  };
+
+  // Use ref to store timeout ID for debouncing
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleSearchChange = (value: string) => {
+    form.setValue("search", value);
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    // Debounce search - update URL after user stops typing
+    searchTimeoutRef.current = setTimeout(() => {
+      updateURLParams({ ...form.getValues(), search: value });
+    }, 500);
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleClearFilters = () => {
+    form.reset({
+      category: "",
+      brand: [],
+      search: "",
+    });
+    const newSearchParams = new URLSearchParams();
+    // Keep only page param if exists
+    const page = searchParams.get("page");
+    if (page) {
+      newSearchParams.set("page", page);
+    }
+    setSearchParams(newSearchParams, { replace: true });
+  };
+
+  const selectedCategory = form.watch("category");
+  const selectedBrands = form.watch("brand") || [];
+  const searchValue = form.watch("search") || "";
+
+  const hasActiveFilters = selectedCategory || selectedBrands.length > 0 || searchValue;
 
   return (
     <section>
@@ -53,20 +154,24 @@ const SearchSection = () => {
         </h2>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="flex w-full gap-4">
+            <div className="flex w-full gap-4 flex-wrap">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" {...form.register("category")}>
-                    All Products
+                  <Button variant="outline" type="button">
+                    {selectedCategory || "All Products"}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="start">
                   <DropdownMenuGroup>
-                    <DropdownMenuItem>All Products</DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleCategorySelect("All Products")}
+                    >
+                      All Products
+                    </DropdownMenuItem>
                     {categories?.content.map((category) => (
                       <DropdownMenuItem
                         key={category.id}
-                        {...form.register("category")}
+                        onClick={() => handleCategorySelect(category.name)}
                       >
                         {category.name}
                       </DropdownMenuItem>
@@ -74,11 +179,23 @@ const SearchSection = () => {
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Input
-                type="text"
-                placeholder="Search"
-                {...form.register("search")}
-              />
+              <div className="flex-1 min-w-[200px]">
+                <Input
+                  type="text"
+                  placeholder="Search products..."
+                  {...form.register("search")}
+                  onChange={(e) => {
+                    form.setValue("search", e.target.value);
+                    handleSearchChange(e.target.value);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      form.handleSubmit(onSubmit)();
+                    }
+                  }}
+                />
+              </div>
               <Button
                 variant="default"
                 className="cursor-pointer"
@@ -86,6 +203,17 @@ const SearchSection = () => {
               >
                 Search
               </Button>
+              {hasActiveFilters && (
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={handleClearFilters}
+                  className="cursor-pointer"
+                >
+                  <XMarkIcon className="h-4 w-4 mr-1" />
+                  Clear
+                </Button>
+              )}
             </div>
             <div className="flex justify-center pt-4">
               <FormField
@@ -106,21 +234,30 @@ const SearchSection = () => {
                             >
                               <FormControl>
                                 <Checkbox
-                                  checked={field.value?.includes(item.id)}
+                                  checked={field.value?.includes(item.name)}
                                   onCheckedChange={(checked) => {
                                     const currentValues = field.value || [];
                                     if (checked) {
                                       field.onChange([
                                         ...currentValues,
-                                        item.id,
+                                        item.name,
                                       ]);
                                     } else {
                                       field.onChange(
                                         currentValues.filter(
-                                          (value) => value !== item.id
+                                          (value) => value !== item.name
                                         )
                                       );
                                     }
+                                    // Update URL immediately when brand is toggled
+                                    updateURLParams({
+                                      ...form.getValues(),
+                                      brand: checked
+                                        ? [...currentValues, item.name]
+                                        : currentValues.filter(
+                                            (value) => value !== item.name
+                                          ),
+                                    });
                                   }}
                                 />
                               </FormControl>

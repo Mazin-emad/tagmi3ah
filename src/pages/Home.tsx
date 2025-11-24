@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import SearchSection from "@/components/global/home/SearchSection";
 import { ProductCard } from "@/components/global/ProductCard";
 import { ProductPagination } from "@/components/global/home/ProductPagination";
@@ -7,39 +7,143 @@ import heroImage from "@/assets/imgs/hero.jpg";
 import { useProducts } from "@/hooks";
 import { LoadingComponent } from "@/components/global/LoadingComponents";
 import { ErrorComponent } from "@/components/global/ErrorComponents";
+import { cn } from "@/lib/utils";
 
-const PRODUCTS_PER_PAGE = 10;
+const PRODUCTS_PER_PAGE = 12;
 
 const Home = () => {
-  const [currentPage, setCurrentPage] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const currentPage = useMemo(() => {
+    const pageParam = searchParams.get("page");
+    if (pageParam) {
+      const page = parseInt(pageParam, 10);
+      return page >= 1 ? page - 1 : 0;
+    }
+    return 0;
+  }, [searchParams]);
+
   const {
-    data: paginatedData,
+    data: allProductsData,
     isLoading,
     error,
     refetch,
-  } = useProducts({
-    page: currentPage,
-    size: PRODUCTS_PER_PAGE,
-  });
+  } = useProducts({ page: 0, size: 1000000000 });
 
-  const products = paginatedData?.content ?? [];
-  const totalPages = paginatedData?.totalPages ?? 0;
-  const totalElements = paginatedData?.totalElements ?? 0;
+  // Get filter params from URL
+  const categoryFilter = searchParams.get("category") || "";
+  const brandFilter = searchParams.get("brand");
+  const brandsArray = useMemo(() => {
+    return brandFilter ? brandFilter.split(",").filter(Boolean) : [];
+  }, [brandFilter]);
+  const searchFilter = searchParams.get("search") || "";
+
+  // Get all products from API
+  const allProducts = useMemo(() => {
+    if (!allProductsData) return [];
+    if (Array.isArray(allProductsData)) {
+      return allProductsData;
+    }
+    return allProductsData.content ?? [];
+  }, [allProductsData]);
+
+  // Filter products based on URL params
+  const filteredProducts = useMemo(() => {
+    let filtered = [...allProducts];
+
+    // Filter by category
+    if (categoryFilter) {
+      filtered = filtered.filter(
+        (product) =>
+          product.categoryName?.toLowerCase() === categoryFilter.toLowerCase()
+      );
+    }
+
+    // Filter by brands (multiple brands can be selected)
+    // Brands are stored as names in URL
+    if (brandsArray.length > 0) {
+      filtered = filtered.filter((product) =>
+        brandsArray.some(
+          (brandName) =>
+            product.brandName?.toLowerCase() === brandName.toLowerCase() ||
+            product.brand?.toLowerCase() === brandName.toLowerCase()
+        )
+      );
+    }
+
+    // Filter by search term (search in name and description)
+    if (searchFilter.trim()) {
+      const searchLower = searchFilter.toLowerCase().trim();
+      filtered = filtered.filter(
+        (product) =>
+          product.name?.toLowerCase().includes(searchLower) ||
+          product.description?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    return filtered;
+  }, [allProducts, categoryFilter, brandsArray, searchFilter]);
+
+  const totalElements = filteredProducts.length;
+
+  const totalPages = useMemo(() => {
+    if (totalElements === 0) return 0;
+    return Math.ceil(totalElements / PRODUCTS_PER_PAGE);
+  }, [totalElements]);
+
+  // Paginate filtered products
+  const products = useMemo(() => {
+    const startIndex = currentPage * PRODUCTS_PER_PAGE;
+    const endIndex = startIndex + PRODUCTS_PER_PAGE;
+    return filteredProducts.slice(startIndex, endIndex);
+  }, [filteredProducts, currentPage]);
+
+  const shouldShowPagination = totalPages > 1;
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    // Scroll to top of products section smoothly
+    const newPage = page + 1;
+
+    const newSearchParams = new URLSearchParams(searchParams);
+    if (newPage === 1) {
+      newSearchParams.delete("page");
+    } else {
+      newSearchParams.set("page", newPage.toString());
+    }
+    setSearchParams(newSearchParams, { replace: true });
+
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Debug: Log pagination data
-  console.log("Pagination Debug:", {
-    currentPage,
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    if (currentPage > 0 && totalPages > 0 && currentPage >= totalPages) {
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete("page");
+      setSearchParams(newSearchParams, { replace: true });
+    }
+  }, [
+    categoryFilter,
+    brandsArray,
+    searchFilter,
     totalPages,
-    totalElements,
-    productsCount: products.length,
-    paginatedData,
-  });
+    currentPage,
+    searchParams,
+    setSearchParams,
+  ]);
+
+  // Validate page number
+  useEffect(() => {
+    const pageParam = searchParams.get("page");
+    if (pageParam) {
+      const page = parseInt(pageParam, 10);
+      if (isNaN(page) || page < 1 || (totalPages > 0 && page > totalPages)) {
+        const newSearchParams = new URLSearchParams(searchParams);
+        newSearchParams.delete("page");
+        setSearchParams(newSearchParams, { replace: true });
+      }
+    }
+  }, [searchParams, totalPages, setSearchParams]);
+
   return (
     <main>
       <section className="bg-white dark:bg-gray-900">
@@ -99,15 +203,31 @@ const Home = () => {
               }}
               callbackText="Try again"
             />
+          ) : filteredProducts.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-lg text-muted-foreground mb-2">
+                No products found matching your filters.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Try adjusting your search criteria or clearing the filters.
+              </p>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div
+              className={cn(
+                "grid gap-4",
+                products.length < 4
+                  ? "grid-cols-[repeat(auto-fit,minmax(280px,280px))]"
+                  : "grid-cols-[repeat(auto-fit,minmax(260px,1fr))]"
+              )}
+            >
               {products?.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
           )}
         </div>
-        {totalPages > 1 && (
+        {shouldShowPagination && (
           <div className="flex justify-center py-8">
             <ProductPagination
               currentPage={currentPage}

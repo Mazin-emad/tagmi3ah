@@ -15,11 +15,14 @@ import type { CreateProductRequest, PageRequest } from "@/api/types";
  * ```
  */
 export function useProducts(options?: PageRequest) {
-  const page = options?.page ?? 0;
-  const size = options?.size ?? 12;
+  // If no options provided, use a different query key for "all products"
+  const queryKey = options?.page !== undefined && options?.size !== undefined
+    ? queryKeys.products.paged(options.page, options.size)
+    : queryKeys.products.all;
+  
   return useQuery({
-    queryKey: queryKeys.products.paged(page, size),
-    queryFn: () => productsApi.getAll({ page, size }),
+    queryKey,
+    queryFn: () => productsApi.getAll(options),
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 }

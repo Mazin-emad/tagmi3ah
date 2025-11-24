@@ -15,31 +15,53 @@ import type {
 export const productsApi = {
   /**
    * Get all products (with optional pagination)
+   * If no page/size provided, returns all products
    */
-  getAll: async ({ page = 0, size = 12 }: PageRequest = {}): Promise<
+  getAll: async (options?: PageRequest): Promise<
     PagedResponse<Product>
   > => {
+    // If no pagination params, fetch all products without params
+    const params = options?.page !== undefined && options?.size !== undefined
+      ? { page: options.page, size: options.size }
+      : undefined;
+
     const response = await apiClient.get<unknown>("/products", {
-      params: { page, size },
+      ...(params && { params }),
     });
     const data = response.data as unknown;
-    // Handle non-paginated response (array)
+    
+    // Handle non-paginated response (array) - always return as array
     if (Array.isArray(data)) {
       const allProducts = data as Product[];
-      const totalElements = allProducts.length;
-      const totalPages = Math.ceil(totalElements / size);
+      
+      // If pagination params were provided, do client-side pagination
+      if (options?.page !== undefined && options?.size !== undefined) {
+        const page = options.page;
+        const size = options.size;
+        const totalElements = allProducts.length;
+        const totalPages = Math.ceil(totalElements / size);
 
-      // Client-side pagination: slice the array based on page and size
-      const startIndex = page * size;
-      const endIndex = startIndex + size;
-      const paginatedContent = allProducts.slice(startIndex, endIndex);
+        // Client-side pagination: slice the array based on page and size
+        const startIndex = page * size;
+        const endIndex = startIndex + size;
+        const paginatedContent = allProducts.slice(startIndex, endIndex);
 
+        return {
+          content: paginatedContent,
+          page,
+          size,
+          totalElements,
+          totalPages,
+        };
+      }
+      
+      // No pagination - return all products
       return {
-        content: paginatedContent,
-        page,
-        size,
-        totalElements,
-        totalPages,
+        content: allProducts,
+        page: 0,
+        size: allProducts.length,
+        totalElements: allProducts.length,
+        totalPages: 1,
       };
     }
     // Handle paginated response from backend

@@ -1,15 +1,16 @@
+import { Link, useSearchParams } from "react-router-dom";
 import {
   Pagination,
   PaginationContent,
   PaginationEllipsis,
   PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
 } from "@/components/ui/pagination";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface ProductPaginationProps {
-  currentPage: number;
+  currentPage: number; // 0-indexed
   totalPages: number;
   onPageChange: (page: number) => void;
 }
@@ -19,9 +20,27 @@ export function ProductPagination({
   totalPages,
   onPageChange,
 }: ProductPaginationProps) {
+  const [searchParams] = useSearchParams();
+
   if (totalPages <= 1) {
     return null;
   }
+
+  // Helper to build URL with page param
+  const buildPageUrl = (page: number): string => {
+    // page is 0-indexed, convert to 1-indexed for URL
+    const pageNum = page + 1;
+    const newSearchParams = new URLSearchParams(searchParams);
+
+    if (pageNum === 1) {
+      newSearchParams.delete("page");
+    } else {
+      newSearchParams.set("page", pageNum.toString());
+    }
+
+    const queryString = newSearchParams.toString();
+    return queryString ? `/?${queryString}` : "/";
+  };
 
   const getPageNumbers = () => {
     const pages: (number | "ellipsis")[] = [];
@@ -65,25 +84,38 @@ export function ProductPagination({
   };
 
   const pageNumbers = getPageNumbers();
+  const prevPage = currentPage > 0 ? currentPage - 1 : 0;
+  const nextPage =
+    currentPage < totalPages - 1 ? currentPage + 1 : totalPages - 1;
 
   return (
     <Pagination>
       <PaginationContent>
         <PaginationItem>
-          <PaginationPrevious
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              if (currentPage > 0) {
-                onPageChange(currentPage - 1);
-              }
-            }}
-            className={
-              currentPage === 0
-                ? "pointer-events-none opacity-50"
-                : "cursor-pointer"
-            }
-          />
+          {currentPage === 0 ? (
+            <span
+              className={cn(
+                buttonVariants({ variant: "ghost", size: "default" }),
+                "gap-1 px-2.5 sm:pl-2.5 pointer-events-none opacity-50"
+              )}
+              aria-disabled
+            >
+              <ChevronLeftIcon />
+              <span className="hidden sm:block">Previous</span>
+            </span>
+          ) : (
+            <Link
+              to={buildPageUrl(prevPage)}
+              className={cn(
+                buttonVariants({ variant: "ghost", size: "default" }),
+                "gap-1 px-2.5 sm:pl-2.5 cursor-pointer"
+              )}
+              aria-label="Go to previous page"
+            >
+              <ChevronLeftIcon />
+              <span className="hidden sm:block">Previous</span>
+            </Link>
+          )}
         </PaginationItem>
 
         {pageNumbers.map((page, index) => {
@@ -95,38 +127,54 @@ export function ProductPagination({
             );
           }
 
+          const isActive = currentPage === page;
           return (
             <PaginationItem key={page}>
-              <PaginationLink
-                href="#"
+              <Link
+                to={buildPageUrl(page)}
                 onClick={(e) => handlePageClick(page, e)}
-                isActive={currentPage === page}
-                className="cursor-pointer"
+                aria-current={isActive ? "page" : undefined}
+                className={cn(
+                  buttonVariants({
+                    variant: isActive ? "outline" : "ghost",
+                    size: "icon",
+                  }),
+                  "cursor-pointer"
+                )}
               >
                 {page + 1}
-              </PaginationLink>
+              </Link>
             </PaginationItem>
           );
         })}
 
         <PaginationItem>
-          <PaginationNext
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              if (currentPage < totalPages - 1) {
-                onPageChange(currentPage + 1);
-              }
-            }}
-            className={
-              currentPage >= totalPages - 1
-                ? "pointer-events-none opacity-50"
-                : "cursor-pointer"
-            }
-          />
+          {currentPage >= totalPages - 1 ? (
+            <span
+              className={cn(
+                buttonVariants({ variant: "ghost", size: "default" }),
+                "gap-1 px-2.5 sm:pr-2.5 pointer-events-none opacity-50"
+              )}
+              aria-disabled
+            >
+              <span className="hidden sm:block">Next</span>
+              <ChevronRightIcon />
+            </span>
+          ) : (
+            <Link
+              to={buildPageUrl(nextPage)}
+              className={cn(
+                buttonVariants({ variant: "ghost", size: "default" }),
+                "gap-1 px-2.5 sm:pr-2.5 cursor-pointer"
+              )}
+              aria-label="Go to next page"
+            >
+              <span className="hidden sm:block">Next</span>
+              <ChevronRightIcon />
+            </Link>
+          )}
         </PaginationItem>
       </PaginationContent>
     </Pagination>
   );
 }
-
