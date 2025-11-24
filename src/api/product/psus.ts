@@ -39,6 +39,10 @@ export const psusApi = {
   },
   update: async (id: number, payload: Partial<PsuRequest>, image?: File): Promise<PsuResponse> => {
     const form = buildMultipart("psu", payload, image);
+    if (!image) {
+      const emptyFile = new File([], "empty", { type: "application/octet-stream" });
+      form.append("image", emptyFile);
+    }
     const res = await multipartApiClient.put<PsuResponse>(`/psus/${id}`, form);
     return res.data;
   },

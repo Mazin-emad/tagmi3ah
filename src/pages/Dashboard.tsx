@@ -26,7 +26,7 @@ const Dashboard = () => {
         <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
           Admin Dashboard
         </h1>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 ">
           <Tabs defaultValue="product">
             <TabsList className="flex w-full overflow-x-auto flex-nowrap justify-start sm:justify-center gap-2 rounded-md p-1">
               <TabsTrigger value="product" className="shrink-0 px-3 py-2 text-sm sm:text-base">

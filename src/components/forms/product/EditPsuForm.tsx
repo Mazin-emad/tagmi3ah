@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,8 +19,8 @@ const schema = z.object({
   price: z.number().min(0.01, "Price must be greater than 0"),
   description: z.string().min(1, "Description is required"),
   stock: z.number().min(0, "Stock cannot be negative"),
-  brandId: z.number().min(0).optional(),
-  categoryId: z.number().min(0).optional(),
+  brandId: z.number().min(1, "Brand is required"),
+  categoryId: z.number().min(1, "Category is required"),
   wattage: z.number().min(0).optional(),
   efficiency: z.string().optional(),
   modularity: z.string().optional(),
@@ -48,8 +49,54 @@ export default function EditPsuForm({ product, onClose }: { product: Product; on
     },
   });
 
+  useEffect(() => {
+    const current = form.getValues("brandId");
+    if ((current === undefined || current === null) && brands.length > 0) {
+      const idFromProduct = (product as any).brandId as number | undefined;
+      if (typeof idFromProduct === "number" && idFromProduct > 0) {
+        form.setValue("brandId", idFromProduct, { shouldDirty: false });
+        return;
+      }
+      const name = ((product as any).brandName || (product as any).brand || "").toString().trim().toLowerCase();
+      if (name) {
+        const found = brands.find((b) => b.name.trim().toLowerCase() === name);
+        if (found) {
+          form.setValue("brandId", found.id, { shouldDirty: false });
+        }
+      }
+    }
+  }, [brands, form, product]);
+
+  useEffect(() => {
+    const current = form.getValues("categoryId");
+    if ((current === undefined || current === null) && categories.length > 0) {
+      const idFromProduct = (product as any).categoryId as number | undefined;
+      if (typeof idFromProduct === "number" && idFromProduct > 0) {
+        form.setValue("categoryId", idFromProduct, { shouldDirty: false });
+        return;
+      }
+      const name = ((product as any).categoryName || (product as any).category || (product as any).type || "").toString().trim().toLowerCase();
+      if (name) {
+        const found = categories.find((c) => c.name.trim().toLowerCase() === name);
+        if (found) {
+          form.setValue("categoryId", found.id, { shouldDirty: false });
+        }
+      }
+    }
+  }, [categories, form, product]);
+
   const onSubmit = (data: FormData) => {
     const id = Number(product.id);
+    if (!data.brandId || data.brandId < 1) {
+      form.setError("brandId", { message: "Brand is required" });
+      toast.error("Brand is required");
+      return;
+    }
+    if (!data.categoryId || data.categoryId < 1) {
+      form.setError("categoryId", { message: "Category is required" });
+      toast.error("Category is required");
+      return;
+    }
     updatePsu(
       { id, data: {
         name: data.name,
@@ -68,7 +115,14 @@ export default function EditPsuForm({ product, onClose }: { product: Product; on
           toast.success("PSU updated successfully");
           onClose();
         },
-        onError: (e: any) => toast.error(e?.message || "Failed to update PSU"),
+        onError: (e: any) => {
+          if (e?.fieldErrors) {
+            Object.entries(e.fieldErrors).forEach(([field, message]) => {
+              form.setError(field as keyof FormData, { message: String(message) });
+            });
+          }
+          toast.error(e?.message || "Failed to update PSU");
+        },
       }
     );
   };
@@ -124,7 +178,10 @@ export default function EditPsuForm({ product, onClose }: { product: Product; on
                     placeholder="Select a brand"
                     options={brandOptions}
                     disabled={brandsLoading}
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                    onChange={(e) => {
+                      const v = (e.target as HTMLSelectElement).value;
+                      field.onChange(v === "" ? undefined : parseInt(v, 10));
+                    }}
                   />
                   <FormMessage />
                 </FormItem>
@@ -139,7 +196,10 @@ export default function EditPsuForm({ product, onClose }: { product: Product; on
                     placeholder="Select a category"
                     options={categoryOptions}
                     disabled={categoriesLoading}
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                    onChange={(e) => {
+                      const v = (e.target as HTMLSelectElement).value;
+                      field.onChange(v === "" ? undefined : parseInt(v, 10));
+                    }}
                   />
                   <FormMessage />
                 </FormItem>
@@ -148,7 +208,16 @@ export default function EditPsuForm({ product, onClose }: { product: Product; on
               <FormField name="wattage" control={form.control} render={({ field }) => (
                 <FormItem>
                   <Label htmlFor="wattage">Wattage</Label>
-                  <Input id="wattage" type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} />
+                  <Input
+                    id="wattage"
+                    type="number"
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      field.onChange(v === "" ? undefined : parseInt(v, 10));
+                    }}
+                  />
                   <FormMessage />
                 </FormItem>
               )} />
@@ -156,7 +225,13 @@ export default function EditPsuForm({ product, onClose }: { product: Product; on
               <FormField name="efficiency" control={form.control} render={({ field }) => (
                 <FormItem>
                   <Label htmlFor="efficiency">Efficiency</Label>
-                  <Input id="efficiency" placeholder="e.g., 80+ Gold" {...field} />
+                  <Input
+                    id="efficiency"
+                    placeholder="e.g., 80+ Gold"
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.value === "" ? undefined : e.target.value)}
+                  />
                   <FormMessage />
                 </FormItem>
               )} />
@@ -164,7 +239,13 @@ export default function EditPsuForm({ product, onClose }: { product: Product; on
               <FormField name="modularity" control={form.control} render={({ field }) => (
                 <FormItem>
                   <Label htmlFor="modularity">Modularity</Label>
-                  <Input id="modularity" placeholder="e.g., Fully Modular" {...field} />
+                  <Input
+                    id="modularity"
+                    placeholder="e.g., Fully Modular"
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.value === "" ? undefined : e.target.value)}
+                  />
                   <FormMessage />
                 </FormItem>
               )} />
@@ -172,7 +253,13 @@ export default function EditPsuForm({ product, onClose }: { product: Product; on
               <FormField name="formFactor" control={form.control} render={({ field }) => (
                 <FormItem>
                   <Label htmlFor="formFactor">Form Factor</Label>
-                  <Input id="formFactor" placeholder="e.g., ATX, SFX" {...field} />
+                  <Input
+                    id="formFactor"
+                    placeholder="e.g., ATX, SFX"
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.value === "" ? undefined : e.target.value)}
+                  />
                   <FormMessage />
                 </FormItem>
               )} />

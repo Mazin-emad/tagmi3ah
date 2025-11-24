@@ -48,6 +48,10 @@ export const cpusApi = {
     image?: File
   ): Promise<CpuResponse> => {
     const form = buildMultipart("cpu", payload, image);
+    if (!image) {
+      const emptyFile = new File([], "empty", { type: "application/octet-stream" });
+      form.append("image", emptyFile);
+    }
     const res = await multipartApiClient.put<CpuResponse>(`/cpus/${id}`, form);
     return res.data;
   },

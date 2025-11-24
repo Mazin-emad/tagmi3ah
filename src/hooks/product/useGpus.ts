@@ -10,7 +10,10 @@ export function useCreateGpu() {
   return useMutation({
     mutationFn: ({ data, image }: { data: GpuRequest; image?: File }) =>
       gpusApi.create(data, image),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["gpus"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["gpus"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
   });
 }
 
@@ -19,7 +22,10 @@ export function useUpdateGpu() {
   return useMutation({
     mutationFn: ({ id, data, image }: { id: number; data: Partial<GpuRequest>; image?: File }) =>
       gpusApi.update(id, data, image),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["gpus"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["gpus"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
   });
 }
 
@@ -27,7 +33,10 @@ export function useDeleteGpu() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => gpusApi.remove(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["gpus"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["gpus"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
   });
 }
 

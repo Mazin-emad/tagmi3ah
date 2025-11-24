@@ -10,7 +10,10 @@ export function useCreatePsu() {
   return useMutation({
     mutationFn: ({ data, image }: { data: PsuRequest; image?: File }) =>
       psusApi.create(data, image),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["psus"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["psus"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
   });
 }
 
@@ -19,7 +22,10 @@ export function useUpdatePsu() {
   return useMutation({
     mutationFn: ({ id, data, image }: { id: number; data: Partial<PsuRequest>; image?: File }) =>
       psusApi.update(id, data, image),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["psus"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["psus"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
   });
 }
 
@@ -27,7 +33,10 @@ export function useDeletePsu() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => psusApi.remove(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["psus"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["psus"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
   });
 }
 

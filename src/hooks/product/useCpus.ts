@@ -10,7 +10,10 @@ export function useCreateCpu() {
   return useMutation({
     mutationFn: ({ data, image }: { data: CpuRequest; image?: File }) =>
       cpusApi.create(data, image),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["cpus"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["cpus"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
   });
 }
 
@@ -26,7 +29,10 @@ export function useUpdateCpu() {
       data: Partial<CpuRequest>;
       image?: File;
     }) => cpusApi.update(id, data, image),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["cpus"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["cpus"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
   });
 }
 
@@ -34,7 +40,10 @@ export function useDeleteCpu() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => cpusApi.remove(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["cpus"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["cpus"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
   });
 }
 
