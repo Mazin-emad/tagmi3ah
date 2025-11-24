@@ -31,4 +31,12 @@ export function useDeletePsu() {
   });
 }
 
+export function useGetPsuById(id?: number) {
+  return useQuery({
+    queryKey: ["psus", id],
+    queryFn: () => psusApi.getById(id!),
+    enabled: !!id && Number.isFinite(id),
+  });
+}
+
 

@@ -37,3 +37,11 @@ export function useDeleteCpu() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["cpus"] }),
   });
 }
+
+export function useGetCpuById(id?: number) {
+  return useQuery({
+    queryKey: ["cpus", id],
+    queryFn: () => cpusApi.getById(id!),
+    enabled: !!id && Number.isFinite(id),
+  });
+}

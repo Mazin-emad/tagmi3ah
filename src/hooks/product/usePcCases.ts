@@ -31,4 +31,12 @@ export function useDeletePcCase() {
   });
 }
 
+export function useGetPcCaseById(id?: number) {
+  return useQuery({
+    queryKey: ["pccases", id],
+    queryFn: () => pcCasesApi.getById(id!),
+    enabled: !!id && Number.isFinite(id),
+  });
+}
+
 

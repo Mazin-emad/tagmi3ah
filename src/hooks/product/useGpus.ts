@@ -31,4 +31,12 @@ export function useDeleteGpu() {
   });
 }
 
+export function useGetGpuById(id?: number) {
+  return useQuery({
+    queryKey: ["gpus", id],
+    queryFn: () => gpusApi.getById(id!),
+    enabled: !!id && Number.isFinite(id),
+  });
+}
+
 

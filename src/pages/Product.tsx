@@ -1,6 +1,13 @@
+import { useMemo } from "react";
 import { ProductDetails } from "@/components/product/ProductDetails";
 import { useParams } from "react-router-dom";
 import { useGetProductById } from "@/hooks/product/useProducts";
+import { useGetCpuById } from "@/hooks/product/useCpus";
+import { useGetGpuById } from "@/hooks/product/useGpus";
+import { useGetMotherboardById } from "@/hooks/product/useMotherboards";
+import { useGetRamKitById } from "@/hooks/product/useRamKits";
+import { useGetPsuById } from "@/hooks/product/usePsus";
+import { useGetPcCaseById } from "@/hooks/product/usePcCases";
 import { formatCurrency, getBrand, getImage } from "@/lib/utils";
 import { buildCpuSpecs } from "@/components/product/specs/CpuSpecs";
 import { buildGpuSpecs } from "@/components/product/specs/GpuSpecs";
@@ -20,7 +27,101 @@ import AddToCartButton from "@/components/global/cart/AddToCartButton";
 const ProductPage = () => {
   const { id } = useParams();
   const numericId = id ? Number(id) : undefined;
-  const { data, isLoading, isError } = useGetProductById(numericId);
+
+  // First, get basic product info to determine category
+  const {
+    data: basicProduct,
+    isLoading: isLoadingBasic,
+    isError: isErrorBasic,
+  } = useGetProductById(numericId);
+
+  // Determine product category from basic product
+  const categoryName = useMemo(() => {
+    if (!basicProduct) return null;
+    const base = basicProduct as { categoryName?: string };
+    return base.categoryName?.toUpperCase() || null;
+  }, [basicProduct]);
+
+  // Fetch full details from specific endpoint based on category
+  const {
+    data: cpuData,
+    isLoading: isLoadingCpu,
+    isError: isErrorCpu,
+  } = useGetCpuById(
+    categoryName === "CPU" && !!basicProduct ? numericId : undefined
+  );
+
+  const {
+    data: gpuData,
+    isLoading: isLoadingGpu,
+    isError: isErrorGpu,
+  } = useGetGpuById(
+    categoryName === "GPU" && !!basicProduct ? numericId : undefined
+  );
+
+  const {
+    data: mbData,
+    isLoading: isLoadingMb,
+    isError: isErrorMb,
+  } = useGetMotherboardById(
+    categoryName === "MOTHERBOARD" && !!basicProduct ? numericId : undefined
+  );
+
+  const {
+    data: ramData,
+    isLoading: isLoadingRam,
+    isError: isErrorRam,
+  } = useGetRamKitById(
+    (categoryName === "RAMKIT" || categoryName === "RAM") && !!basicProduct
+      ? numericId
+      : undefined
+  );
+
+  const {
+    data: psuData,
+    isLoading: isLoadingPsu,
+    isError: isErrorPsu,
+  } = useGetPsuById(
+    categoryName === "PSU" && !!basicProduct ? numericId : undefined
+  );
+
+  const {
+    data: caseData,
+    isLoading: isLoadingCase,
+    isError: isErrorCase,
+  } = useGetPcCaseById(
+    (categoryName === "PCCASE" || categoryName === "PC CASE") && !!basicProduct
+      ? numericId
+      : undefined
+  );
+
+  // Determine which data to use (specific endpoint response or fallback to basic product)
+  const data = useMemo(() => {
+    if (cpuData) return cpuData;
+    if (gpuData) return gpuData;
+    if (mbData) return mbData;
+    if (ramData) return ramData;
+    if (psuData) return psuData;
+    if (caseData) return caseData;
+    return basicProduct;
+  }, [cpuData, gpuData, mbData, ramData, psuData, caseData, basicProduct]);
+
+  const isLoading =
+    isLoadingBasic ||
+    isLoadingCpu ||
+    isLoadingGpu ||
+    isLoadingMb ||
+    isLoadingRam ||
+    isLoadingPsu ||
+    isLoadingCase;
+  const isError =
+    isErrorBasic ||
+    isErrorCpu ||
+    isErrorGpu ||
+    isErrorMb ||
+    isErrorRam ||
+    isErrorPsu ||
+    isErrorCase;
 
   if (isLoading) {
     return (
@@ -29,8 +130,9 @@ const ProductPage = () => {
         brand=""
         price="$0.00"
         description=""
-        image="https://via.placeholder.com/600"
+        image="https://picsum.photos/200"
         specs={[]}
+        stock={0}
       />
     );
   }
@@ -42,8 +144,9 @@ const ProductPage = () => {
         brand=""
         price="$0.00"
         description=""
-        image="https://via.placeholder.com/600"
+        image="https://picsum.photos/200"
         specs={[]}
+        stock={0}
       />
     );
   }
@@ -58,6 +161,7 @@ const ProductPage = () => {
     imageUrl?: string;
     image?: string;
     categoryName?: string;
+    stock?: number;
   } & Record<string, unknown>;
 
   const isCPU = (p: BaseProduct) =>
@@ -80,25 +184,13 @@ const ProductPage = () => {
   // Normalize common fields
   const base = data as BaseProduct;
   const title = base.name;
-  const hasCategoryName = (
-    p: BaseProduct
-  ): p is BaseProduct & { categoryName: string } =>
-    "categoryName" in (p as object);
-
   const brand = getBrand(base);
   const image = getImage(base);
   const price = formatCurrency(base.price);
   const description = base.description ?? "";
 
-  // Build specs based on type
+  // Build specs based on type (excluding Type and Category)
   const specs: { label: string; value: string }[] = [];
-  const typeLabel =
-    (base.categoryName?.toUpperCase() === "PC CASE"
-      ? "PCCASE"
-      : base.categoryName) ?? "PRODUCT";
-  specs.push({ label: "Type", value: typeLabel });
-  if (hasCategoryName(base))
-    specs.push({ label: "Category", value: base.categoryName });
   if (isCPU(base)) specs.push(...buildCpuSpecs(base as unknown as CpuResponse));
   else if (isGPU(base))
     specs.push(...buildGpuSpecs(base as unknown as GpuResponse));
@@ -114,23 +206,21 @@ const ProductPage = () => {
     specs.push(...buildPcCaseSpecs(base as unknown as PcCaseResponse));
 
   return (
-    <div className="space-y-4">
-      <ProductDetails
-        title={title}
-        brand={brand}
-        price={price}
-        description={description}
-        image={image}
-        specs={specs}
+    <ProductDetails
+      title={title}
+      brand={brand}
+      price={price}
+      description={description}
+      image={image}
+      specs={specs}
+      stock={base.stock}
+    >
+      <AddToCartButton
+        productId={Number(numericId)}
+        product={base as unknown as Product}
+        className="w-full sm:w-auto text-base h-12 px-8"
       />
-      <div className="max-w-7xl mx-auto px-4 -mt-4">
-        <AddToCartButton
-          productId={Number(numericId)}
-          product={base as unknown as Product}
-          className="w-full sm:w-auto"
-        />
-      </div>
-    </div>
+    </ProductDetails>
   );
 };
 

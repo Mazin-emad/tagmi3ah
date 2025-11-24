@@ -23,7 +23,8 @@ export default function AddToCartButton({
   const [isAdding, setIsAdding] = useState(false);
 
   const isInCart = isItemInCart(productId);
-  const isDisabled = isAdding || isInCart || !product;
+  const isOutOfStock = product?.stock !== undefined && product.stock === 0;
+  const isDisabled = isAdding || isInCart || !product || isOutOfStock;
 
   const handleAdd = async () => {
     if (!product) {
@@ -61,7 +62,13 @@ export default function AddToCartButton({
 
   return (
     <Button onClick={handleAdd} disabled={isDisabled} className={className}>
-      {isAdding ? "Adding..." : isInCart ? "Already in Cart" : label}
+      {isAdding
+        ? "Adding..."
+        : isOutOfStock
+        ? "Out of Stock"
+        : isInCart
+        ? "Already in Cart"
+        : label}
     </Button>
   );
 }

@@ -31,4 +31,12 @@ export function useDeleteMotherboard() {
   });
 }
 
+export function useGetMotherboardById(id?: number) {
+  return useQuery({
+    queryKey: ["motherboards", id],
+    queryFn: () => motherboardsApi.getById(id!),
+    enabled: !!id && Number.isFinite(id),
+  });
+}
+
 

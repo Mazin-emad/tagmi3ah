@@ -31,4 +31,12 @@ export function useDeleteRamKit() {
   });
 }
 
+export function useGetRamKitById(id?: number) {
+  return useQuery({
+    queryKey: ["ramkits", id],
+    queryFn: () => ramKitsApi.getById(id!),
+    enabled: !!id && Number.isFinite(id),
+  });
+}
+
 
