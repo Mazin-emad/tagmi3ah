@@ -14,6 +14,7 @@ export const queryKeys = {
   },
   products: {
     all: ["products"] as const,
+    paged: (page: number, size: number) => ["products", { page, size }] as const,
   },
   metadata: {
     all: ["metadata"] as const,

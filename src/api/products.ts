@@ -4,7 +4,8 @@ import type {
   Product,
   CreateProductRequest,
   CreateProductResponse,
-  ProductsResponse,
+  PageRequest,
+  PagedResponse,
 } from "./types";
 
 /**
@@ -13,11 +14,58 @@ import type {
 
 export const productsApi = {
   /**
-   * Get all products
+   * Get all products (with optional pagination)
+   * If no page/size provided, returns all products
    */
-  getAll: async (): Promise<ProductsResponse> => {
-    const response = await apiClient.get<ProductsResponse>("/products");
-    return response.data;
+  getAll: async (options?: PageRequest): Promise<
+    PagedResponse<Product>
+  > => {
+    // If no pagination params, fetch all products without params
+    const params = options?.page !== undefined && options?.size !== undefined
+      ? { page: options.page, size: options.size }
+      : undefined;
+
+    const response = await apiClient.get<unknown>("/products", {
+      ...(params && { params }),
+    });
+    const data = response.data as unknown;
+    
+    // Handle non-paginated response (array) - always return as array
+    if (Array.isArray(data)) {
+      const allProducts = data as Product[];
+      
+      // If pagination params were provided, do client-side pagination
+      if (options?.page !== undefined && options?.size !== undefined) {
+        const page = options.page;
+        const size = options.size;
+        const totalElements = allProducts.length;
+        const totalPages = Math.ceil(totalElements / size);
+
+        // Client-side pagination: slice the array based on page and size
+        const startIndex = page * size;
+        const endIndex = startIndex + size;
+        const paginatedContent = allProducts.slice(startIndex, endIndex);
+
+        return {
+          content: paginatedContent,
+          page,
+          size,
+          totalElements,
+          totalPages,
+        };
+      }
+      
+      // No pagination - return all products
+      return {
+        content: allProducts,
+        page: 0,
+        size: allProducts.length,
+        totalElements: allProducts.length,
+        totalPages: 1,
+      };
+    }
+    // Handle paginated response from backend
+    return data as PagedResponse<Product>;
   },
 
   /**
@@ -102,4 +150,3 @@ export const productsApi = {
     await jsonApiClient.delete(`/products/${Number(id)}`);
   },
 };
-

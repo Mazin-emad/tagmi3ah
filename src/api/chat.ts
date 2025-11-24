@@ -30,14 +30,20 @@ const getCohereClient = (): CohereClient => {
 
 /**
  * Convert chat messages to Cohere format
+ * Cohere API requires:
+ * - 'message' field (not 'content')
+ * - Role names: "User", "Chatbot", "System", "Tool" (capitalized)
+ * - Filters out empty messages
  */
 const formatMessagesForCohere = (
   messages: ChatMessage[]
-): Array<{ role: "user" | "assistant" | "system"; content: string }> => {
-  return messages.map((msg) => ({
-    role: msg.role === "user" ? "user" : "assistant",
-    content: msg.content,
-  }));
+): Array<{ role: "User" | "Chatbot"; message: string }> => {
+  return messages
+    .filter((msg) => msg.content && msg.content.trim().length > 0) // Filter out empty messages
+    .map((msg) => ({
+      role: msg.role === "user" ? "User" : "Chatbot", // Cohere expects "User" and "Chatbot" (capitalized)
+      message: msg.content.trim(), // Cohere expects 'message' field, not 'content'
+    }));
 };
 
 /**
@@ -117,57 +123,139 @@ Always be helpful, clear, and focus on building compatible PC systems that meet 
       },
     };
   } catch (error: unknown) {
-    // Handle specific Cohere API errors
-    if (error instanceof Error) {
-      const errorMessage = error.message.toLowerCase();
+    // Log the full error for debugging (only in development)
+    if (import.meta.env.DEV) {
+      console.error("Cohere API Error:", error);
+    }
 
-      if (
-        errorMessage.includes("api key") ||
-        errorMessage.includes("authentication") ||
-        errorMessage.includes("unauthorized")
-      ) {
+    // Handle Cohere SDK error structure
+    const cohereError = error as any;
+    
+    // Extract error message from various possible locations
+    let apiErrorMessage: string | undefined;
+    let statusCode: number | undefined;
+
+    // Check for Cohere SDK error structure
+    if (cohereError?.body) {
+      if (typeof cohereError.body === "string") {
+        try {
+          const parsed = JSON.parse(cohereError.body);
+          apiErrorMessage = parsed.message || parsed.error?.message;
+          statusCode = parsed.status || parsed.statusCode;
+        } catch {
+          apiErrorMessage = cohereError.body;
+        }
+      } else if (typeof cohereError.body === "object") {
+        apiErrorMessage = cohereError.body.message || cohereError.body.error?.message;
+        statusCode = cohereError.body.status || cohereError.body.statusCode;
+      }
+    }
+
+    // Check for status code in error object
+    if (!statusCode && cohereError?.status) {
+      statusCode = cohereError.status;
+    }
+    if (!statusCode && cohereError?.statusCode) {
+      statusCode = cohereError.statusCode;
+    }
+
+    // Get error message from various sources
+    const errorMessage = 
+      apiErrorMessage || 
+      cohereError?.message || 
+      (error instanceof Error ? error.message : String(error));
+
+    const errorMessageLower = errorMessage.toLowerCase();
+
+    // Handle errors by status code first (more reliable)
+    if (statusCode) {
+      if (statusCode === 401 || statusCode === 403) {
         throw new Error(
           "Invalid or missing Cohere API key. Please check your configuration."
         );
       }
-      if (errorMessage.includes("rate limit") || errorMessage.includes("429")) {
+      if (statusCode === 429) {
         throw new Error(
           "Rate limit exceeded. Please wait a moment and try again."
         );
       }
-      if (errorMessage.includes("quota") || errorMessage.includes("billing")) {
+      if (statusCode >= 500) {
         throw new Error(
-          "API quota exceeded. Please check your Cohere account limits."
+          "AI service is temporarily unavailable. Please try again later."
         );
       }
-      if (errorMessage.includes("network") || errorMessage.includes("fetch")) {
-        throw new Error(
-          "Network error. Please check your internet connection and try again."
-        );
+      if (statusCode >= 400 && statusCode < 500) {
+        // Client error - check for specific messages
+        if (
+          errorMessageLower.includes("all elements in history must have a message") ||
+          errorMessageLower.includes("history must have a message") ||
+          errorMessageLower.includes("invalid role in chat_history") ||
+          errorMessageLower.includes("invalid request")
+        ) {
+          throw new Error(
+            "There was an issue with the chat history format. Please try clearing the chat and starting a new conversation."
+          );
+        }
+        throw new Error(`AI service error: ${errorMessage}`);
       }
-      if (errorMessage.includes("timeout")) {
-        throw new Error("Request timed out. Please try again.");
-      }
-
-      // Check for Cohere-specific error structure
-      const cohereError = error as any;
-      if (cohereError?.body?.message) {
-        throw new Error(`Cohere API error: ${cohereError.body.message}`);
-      }
-
-      throw new Error(`Failed to get AI response: ${error.message}`);
     }
 
-    // Handle non-Error objects
-    if (typeof error === "object" && error !== null) {
-      const errorObj = error as Record<string, unknown>;
-      if (errorObj.message) {
-        throw new Error(String(errorObj.message));
-      }
+    // Handle specific error messages (fallback if no status code)
+    if (
+      errorMessageLower.includes("all elements in history must have a message") ||
+      errorMessageLower.includes("history must have a message") ||
+      errorMessageLower.includes("invalid role in chat_history") ||
+      errorMessageLower.includes("invalid request")
+    ) {
+      throw new Error(
+        "There was an issue with the chat history format. Please try clearing the chat and starting a new conversation."
+      );
+    }
+
+    if (
+      errorMessageLower.includes("api key") ||
+      errorMessageLower.includes("authentication") ||
+      errorMessageLower.includes("unauthorized")
+    ) {
+      throw new Error(
+        "Invalid or missing Cohere API key. Please check your configuration."
+      );
+    }
+
+    if (errorMessageLower.includes("rate limit") || errorMessageLower.includes("429")) {
+      throw new Error(
+        "Rate limit exceeded. Please wait a moment and try again."
+      );
+    }
+
+    if (errorMessageLower.includes("quota") || errorMessageLower.includes("billing")) {
+      throw new Error(
+        "API quota exceeded. Please check your Cohere account limits."
+      );
+    }
+
+    // Only treat as network error if it's actually a network issue
+    // Check for actual network errors (not API errors that mention "fetch")
+    if (
+      error instanceof TypeError &&
+      (error.message.includes("Failed to fetch") || error.message.includes("NetworkError"))
+    ) {
+      throw new Error(
+        "Network error. Please check your internet connection and try again."
+      );
+    }
+
+    if (errorMessageLower.includes("timeout")) {
+      throw new Error("Request timed out. Please try again.");
+    }
+
+    // Generic error - show the actual error message if available
+    if (errorMessage && errorMessage !== "Error") {
+      throw new Error(`AI service error: ${errorMessage}`);
     }
 
     throw new Error(
-      "An unexpected error occurred while communicating with AI."
+      "An unexpected error occurred while communicating with AI. Please try again."
     );
   }
 }

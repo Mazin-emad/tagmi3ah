@@ -1,21 +1,28 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { productsApi } from "@/api/products";
 import { queryKeys } from "@/api/queryKeys";
-import type { CreateProductRequest } from "@/api/types";
-import type { ApiError } from "@/api/types";
+import type { CreateProductRequest, PageRequest } from "@/api/types";
 
 /**
- * Hook to get all products
+ * Hook to get all products with pagination
  *
+ * @param options - Pagination options (page, size)
  * @example
  * ```tsx
- * const { data: products, isLoading } = useProducts();
+ * const { data, isLoading } = useProducts({ page: 0, size: 12 });
+ * const products = data?.content ?? [];
+ * const totalPages = data?.totalPages ?? 0;
  * ```
  */
-export function useProducts() {
+export function useProducts(options?: PageRequest) {
+  // If no options provided, use a different query key for "all products"
+  const queryKey = options?.page !== undefined && options?.size !== undefined
+    ? queryKeys.products.paged(options.page, options.size)
+    : queryKeys.products.all;
+  
   return useQuery({
-    queryKey: queryKeys.products.all,
-    queryFn: () => productsApi.getAll(),
+    queryKey,
+    queryFn: () => productsApi.getAll(options),
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 }
@@ -115,4 +122,3 @@ export function useDeleteProduct() {
     },
   });
 }
-
