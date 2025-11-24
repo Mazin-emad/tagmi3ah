@@ -11,10 +11,10 @@ interface ProductsTableProps {
 }
 
 export default function ProductsTable({ onEdit }: ProductsTableProps) {
-  const { data: products = [], isLoading } = useProducts();
+  const { data: products, isLoading } = useProducts();
   const { mutate: deleteProduct, isPending: deleting } = useDeleteProduct();
 
-  const rows = useMemo(() => products, [products]);
+  const rows = useMemo(() => products?.content ?? [], [products]);
   if (isLoading) {
     return (
       <div className="space-y-2">
