@@ -1,4 +1,5 @@
 import apiClient from "./axios";
+import { jsonApiClient } from "./product/client";
 import type {
   Product,
   CreateProductRequest,
@@ -123,10 +124,7 @@ export const productsApi = {
   /**
    * Delete product (admin only)
    */
-  delete: async (id: string): Promise<{ success: boolean }> => {
-    const response = await apiClient.delete<{ success: boolean }>(
-      `/products/${id}`
-    );
-    return response.data;
+  delete: async (id: number): Promise<void> => {
+    await jsonApiClient.delete(`/products/${Number(id)}`);
   },
 };

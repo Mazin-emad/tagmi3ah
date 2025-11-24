@@ -37,14 +37,16 @@ apiClient.interceptors.request.use(
         delete (config.headers as Record<string, string>)["content-type"];
       }
     } else {
-      // Default JSON for non-multipart requests
+      // Only set JSON Content-Type when there is a request body
+      // Some servers reject Content-Type on requests without a body (e.g., DELETE)
+      const hasBody = config.data !== undefined;
       if (
+        hasBody &&
         config.headers &&
         !("Content-Type" in config.headers) &&
         !("content-type" in config.headers)
       ) {
-        (config.headers as Record<string, string>)["Content-Type"] =
-          "application/json";
+        (config.headers as Record<string, string>)["Content-Type"] = "application/json";
       }
     }
     return config;
