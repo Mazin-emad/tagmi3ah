@@ -1,14 +1,45 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import SearchSection from "@/components/global/home/SearchSection";
 import { ProductCard } from "@/components/global/ProductCard";
-import { Button } from "@/components/ui/button";
+import { ProductPagination } from "@/components/global/home/ProductPagination";
 import heroImage from "@/assets/imgs/hero.jpg";
 import { useProducts } from "@/hooks";
 import { LoadingComponent } from "@/components/global/LoadingComponents";
 import { ErrorComponent } from "@/components/global/ErrorComponents";
 
+const PRODUCTS_PER_PAGE = 10;
+
 const Home = () => {
-  const { data: products, isLoading, error, refetch } = useProducts();
+  const [currentPage, setCurrentPage] = useState(0);
+  const {
+    data: paginatedData,
+    isLoading,
+    error,
+    refetch,
+  } = useProducts({
+    page: currentPage,
+    size: PRODUCTS_PER_PAGE,
+  });
+
+  const products = paginatedData?.content ?? [];
+  const totalPages = paginatedData?.totalPages ?? 0;
+  const totalElements = paginatedData?.totalElements ?? 0;
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Scroll to top of products section smoothly
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Debug: Log pagination data
+  console.log("Pagination Debug:", {
+    currentPage,
+    totalPages,
+    totalElements,
+    productsCount: products.length,
+    paginatedData,
+  });
   return (
     <main>
       <section className="bg-white dark:bg-gray-900">
@@ -56,7 +87,7 @@ const Home = () => {
         </div>
       </section>
       <SearchSection />
-      <section>
+      <section className="pb-8">
         <div className="grid max-w-7xl px-4 mx-auto lg:gap-8 xl:gap-0">
           {isLoading ? (
             <LoadingComponent />
@@ -76,17 +107,15 @@ const Home = () => {
             </div>
           )}
         </div>
-        <div className="flex justify-center py-8">
-          <Button
-            variant="outline"
-            onClick={() => {
-              console.log("Load More");
-            }}
-            className="cursor-pointer hover:bg-primary px-8 text-lg hover:text-white hover:border-primary hover:shadow-md transition-all duration-300"
-          >
-            Load More
-          </Button>
-        </div>
+        {totalPages > 1 && (
+          <div className="flex justify-center py-8">
+            <ProductPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          </div>
+        )}
       </section>
     </main>
   );

@@ -3,7 +3,8 @@ import type {
   Product,
   CreateProductRequest,
   CreateProductResponse,
-  ProductsResponse,
+  PageRequest,
+  PagedResponse,
 } from "./types";
 
 /**
@@ -12,11 +13,36 @@ import type {
 
 export const productsApi = {
   /**
-   * Get all products
+   * Get all products (with optional pagination)
    */
-  getAll: async (): Promise<ProductsResponse> => {
-    const response = await apiClient.get<ProductsResponse>("/products");
-    return response.data;
+  getAll: async ({ page = 0, size = 12 }: PageRequest = {}): Promise<
+    PagedResponse<Product>
+  > => {
+    const response = await apiClient.get<unknown>("/products", {
+      params: { page, size },
+    });
+    const data = response.data as unknown;
+    // Handle non-paginated response (array)
+    if (Array.isArray(data)) {
+      const allProducts = data as Product[];
+      const totalElements = allProducts.length;
+      const totalPages = Math.ceil(totalElements / size);
+
+      // Client-side pagination: slice the array based on page and size
+      const startIndex = page * size;
+      const endIndex = startIndex + size;
+      const paginatedContent = allProducts.slice(startIndex, endIndex);
+
+      return {
+        content: paginatedContent,
+        page,
+        size,
+        totalElements,
+        totalPages,
+      };
+    }
+    // Handle paginated response from backend
+    return data as PagedResponse<Product>;
   },
 
   /**
@@ -104,4 +130,3 @@ export const productsApi = {
     return response.data;
   },
 };
-
