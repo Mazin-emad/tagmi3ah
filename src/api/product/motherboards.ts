@@ -49,6 +49,10 @@ export const motherboardsApi = {
   },
   update: async (id: number, payload: Partial<MotherboardRequest>, image?: File): Promise<MotherboardResponse> => {
     const form = buildMultipart("motherboard", payload, image);
+    if (!image) {
+      const emptyFile = new File([], "empty", { type: "application/octet-stream" });
+      form.append("image", emptyFile);
+    }
     const res = await multipartApiClient.put<MotherboardResponse>(`/motherboards/${id}`, form);
     return res.data;
   },

@@ -46,6 +46,10 @@ export const gpusApi = {
     image?: File
   ): Promise<GpuResponse> => {
     const form = buildMultipart("gpu", payload, image);
+    if (!image) {
+      const emptyFile = new File([], "empty", { type: "application/octet-stream" });
+      form.append("image", emptyFile);
+    }
     const res = await multipartApiClient.put<GpuResponse>(`/gpus/${id}`, form);
     return res.data;
   },

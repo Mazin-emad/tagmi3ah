@@ -10,7 +10,10 @@ export function useCreateMotherboard() {
   return useMutation({
     mutationFn: ({ data, image }: { data: MotherboardRequest; image?: File }) =>
       motherboardsApi.create(data, image),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["motherboards"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["motherboards"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
   });
 }
 
@@ -19,7 +22,10 @@ export function useUpdateMotherboard() {
   return useMutation({
     mutationFn: ({ id, data, image }: { id: number; data: Partial<MotherboardRequest>; image?: File }) =>
       motherboardsApi.update(id, data, image),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["motherboards"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["motherboards"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
   });
 }
 
@@ -27,7 +33,10 @@ export function useDeleteMotherboard() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => motherboardsApi.remove(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["motherboards"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["motherboards"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
   });
 }
 

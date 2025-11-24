@@ -41,6 +41,10 @@ export const ramKitsApi = {
   },
   update: async (id: number, payload: Partial<RamKitRequest>, image?: File): Promise<RamKitResponse> => {
     const form = buildMultipart("ramKit", payload, image);
+    if (!image) {
+      const emptyFile = new File([], "empty", { type: "application/octet-stream" });
+      form.append("image", emptyFile);
+    }
     const res = await multipartApiClient.put<RamKitResponse>(`/ramkits/${id}`, form);
     return res.data;
   },

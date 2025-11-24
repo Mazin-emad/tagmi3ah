@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,8 +19,8 @@ const schema = z.object({
   price: z.number().min(0.01, "Price must be greater than 0"),
   description: z.string().min(1, "Description is required"),
   stock: z.number().min(0, "Stock cannot be negative"),
-  brandId: z.number().min(0).optional(),
-  categoryId: z.number().min(0).optional(),
+  brandId: z.number().min(1, "Brand is required"),
+  categoryId: z.number().min(1, "Category is required"),
   socket: z.string().optional(),
   chipset: z.string().optional(),
   formFactor: z.string().optional(),
@@ -58,8 +59,54 @@ export default function EditMotherboardForm({ product, onClose }: { product: Pro
     },
   });
 
+  useEffect(() => {
+    const current = form.getValues("brandId");
+    if ((current === undefined || current === null) && brands.length > 0) {
+      const idFromProduct = (product as any).brandId as number | undefined;
+      if (typeof idFromProduct === "number" && idFromProduct > 0) {
+        form.setValue("brandId", idFromProduct, { shouldDirty: false });
+        return;
+      }
+      const name = ((product as any).brandName || (product as any).brand || "").toString().trim().toLowerCase();
+      if (name) {
+        const found = brands.find((b) => b.name.trim().toLowerCase() === name);
+        if (found) {
+          form.setValue("brandId", found.id, { shouldDirty: false });
+        }
+      }
+    }
+  }, [brands, form, product]);
+
+  useEffect(() => {
+    const current = form.getValues("categoryId");
+    if ((current === undefined || current === null) && categories.length > 0) {
+      const idFromProduct = (product as any).categoryId as number | undefined;
+      if (typeof idFromProduct === "number" && idFromProduct > 0) {
+        form.setValue("categoryId", idFromProduct, { shouldDirty: false });
+        return;
+      }
+      const name = ((product as any).categoryName || (product as any).category || (product as any).type || "").toString().trim().toLowerCase();
+      if (name) {
+        const found = categories.find((c) => c.name.trim().toLowerCase() === name);
+        if (found) {
+          form.setValue("categoryId", found.id, { shouldDirty: false });
+        }
+      }
+    }
+  }, [categories, form, product]);
+
   const onSubmit = (data: FormData) => {
     const id = Number(product.id);
+    if (!data.brandId || data.brandId < 1) {
+      form.setError("brandId", { message: "Brand is required" });
+      toast.error("Brand is required");
+      return;
+    }
+    if (!data.categoryId || data.categoryId < 1) {
+      form.setError("categoryId", { message: "Category is required" });
+      toast.error("Category is required");
+      return;
+    }
     updateMotherboard(
       { id, data: {
         name: data.name,
@@ -83,7 +130,14 @@ export default function EditMotherboardForm({ product, onClose }: { product: Pro
           toast.success("Motherboard updated successfully");
           onClose();
         },
-        onError: (e: any) => toast.error(e?.message || "Failed to update motherboard"),
+        onError: (e: any) => {
+          if (e?.fieldErrors) {
+            Object.entries(e.fieldErrors).forEach(([field, message]) => {
+              form.setError(field as keyof FormData, { message: String(message) });
+            });
+          }
+          toast.error(e?.message || "Failed to update motherboard");
+        },
       }
     );
   };
@@ -139,7 +193,10 @@ export default function EditMotherboardForm({ product, onClose }: { product: Pro
                     placeholder="Select a brand"
                     options={brandOptions}
                     disabled={brandsLoading}
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                    onChange={(e) => {
+                      const v = (e.target as HTMLSelectElement).value;
+                      field.onChange(v === "" ? undefined : parseInt(v, 10));
+                    }}
                   />
                   <FormMessage />
                 </FormItem>
@@ -154,7 +211,10 @@ export default function EditMotherboardForm({ product, onClose }: { product: Pro
                     placeholder="Select a category"
                     options={categoryOptions}
                     disabled={categoriesLoading}
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                    onChange={(e) => {
+                      const v = (e.target as HTMLSelectElement).value;
+                      field.onChange(v === "" ? undefined : parseInt(v, 10));
+                    }}
                   />
                   <FormMessage />
                 </FormItem>
@@ -163,7 +223,7 @@ export default function EditMotherboardForm({ product, onClose }: { product: Pro
               <FormField name="socket" control={form.control} render={({ field }) => (
                 <FormItem>
                   <Label htmlFor="socket">Socket</Label>
-                  <Input id="socket" {...field} />
+                  <Input id="socket" {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : e.target.value)} />
                   <FormMessage />
                 </FormItem>
               )} />
@@ -171,7 +231,7 @@ export default function EditMotherboardForm({ product, onClose }: { product: Pro
               <FormField name="chipset" control={form.control} render={({ field }) => (
                 <FormItem>
                   <Label htmlFor="chipset">Chipset</Label>
-                  <Input id="chipset" {...field} />
+                  <Input id="chipset" {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : e.target.value)} />
                   <FormMessage />
                 </FormItem>
               )} />
@@ -179,7 +239,7 @@ export default function EditMotherboardForm({ product, onClose }: { product: Pro
               <FormField name="formFactor" control={form.control} render={({ field }) => (
                 <FormItem>
                   <Label htmlFor="formFactor">Form Factor</Label>
-                  <Input id="formFactor" placeholder="e.g., ATX, mATX" {...field} />
+                  <Input id="formFactor" placeholder="e.g., ATX, mATX" {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : e.target.value)} />
                   <FormMessage />
                 </FormItem>
               )} />
@@ -187,7 +247,7 @@ export default function EditMotherboardForm({ product, onClose }: { product: Pro
               <FormField name="ramType" control={form.control} render={({ field }) => (
                 <FormItem>
                   <Label htmlFor="ramType">RAM Type</Label>
-                  <Input id="ramType" {...field} />
+                  <Input id="ramType" {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : e.target.value)} />
                   <FormMessage />
                 </FormItem>
               )} />
@@ -195,7 +255,7 @@ export default function EditMotherboardForm({ product, onClose }: { product: Pro
               <FormField name="ramSlots" control={form.control} render={({ field }) => (
                 <FormItem>
                   <Label htmlFor="ramSlots">RAM Slots</Label>
-                  <Input id="ramSlots" type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} />
+                  <Input id="ramSlots" type="number" {...field} value={field.value ?? ""} onChange={(e) => { const v = e.target.value; field.onChange(v === "" ? undefined : parseInt(v, 10)); }} />
                   <FormMessage />
                 </FormItem>
               )} />
@@ -203,7 +263,7 @@ export default function EditMotherboardForm({ product, onClose }: { product: Pro
               <FormField name="maxMemorySpeedMHz" control={form.control} render={({ field }) => (
                 <FormItem>
                   <Label htmlFor="maxMemorySpeedMHz">Max Memory Speed (MHz)</Label>
-                  <Input id="maxMemorySpeedMHz" type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} />
+                  <Input id="maxMemorySpeedMHz" type="number" {...field} value={field.value ?? ""} onChange={(e) => { const v = e.target.value; field.onChange(v === "" ? undefined : parseInt(v, 10)); }} />
                   <FormMessage />
                 </FormItem>
               )} />
@@ -211,7 +271,7 @@ export default function EditMotherboardForm({ product, onClose }: { product: Pro
               <FormField name="pcieVersion" control={form.control} render={({ field }) => (
                 <FormItem>
                   <Label htmlFor="pcieVersion">PCIe Version</Label>
-                  <Input id="pcieVersion" {...field} />
+                  <Input id="pcieVersion" {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : e.target.value)} />
                   <FormMessage />
                 </FormItem>
               )} />
@@ -219,7 +279,7 @@ export default function EditMotherboardForm({ product, onClose }: { product: Pro
               <FormField name="m2Slots" control={form.control} render={({ field }) => (
                 <FormItem>
                   <Label htmlFor="m2Slots">M.2 Slots</Label>
-                  <Input id="m2Slots" type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} />
+                  <Input id="m2Slots" type="number" {...field} value={field.value ?? ""} onChange={(e) => { const v = e.target.value; field.onChange(v === "" ? undefined : parseInt(v, 10)); }} />
                   <FormMessage />
                 </FormItem>
               )} />

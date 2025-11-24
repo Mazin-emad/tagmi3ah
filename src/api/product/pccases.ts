@@ -39,6 +39,10 @@ export const pcCasesApi = {
   },
   update: async (id: number, payload: Partial<PcCaseRequest>, image?: File): Promise<PcCaseResponse> => {
     const form = buildMultipart("pcCase", payload, image);
+    if (!image) {
+      const emptyFile = new File([], "empty", { type: "application/octet-stream" });
+      form.append("image", emptyFile);
+    }
     const res = await multipartApiClient.put<PcCaseResponse>(`/pccases/${id}`, form);
     return res.data;
   },

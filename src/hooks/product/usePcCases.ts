@@ -10,7 +10,10 @@ export function useCreatePcCase() {
   return useMutation({
     mutationFn: ({ data, image }: { data: PcCaseRequest; image?: File }) =>
       pcCasesApi.create(data, image),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["pccases"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pccases"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
   });
 }
 
@@ -19,7 +22,10 @@ export function useUpdatePcCase() {
   return useMutation({
     mutationFn: ({ id, data, image }: { id: number; data: Partial<PcCaseRequest>; image?: File }) =>
       pcCasesApi.update(id, data, image),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["pccases"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pccases"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
   });
 }
 
@@ -27,7 +33,10 @@ export function useDeletePcCase() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => pcCasesApi.remove(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["pccases"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pccases"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
   });
 }
 

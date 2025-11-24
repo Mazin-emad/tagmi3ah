@@ -26,7 +26,7 @@ export default function ProductsTable({ onEdit }: ProductsTableProps) {
   }
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border bg-white">
       <Table>
         <TableHeader>
           <TableRow>
