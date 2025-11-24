@@ -64,6 +64,16 @@ export function useChat() {
   }, []);
 
   /**
+   * Clear all chat messages
+   */
+  const clearChat = useCallback(() => {
+    setMessages([]);
+    localStorage.removeItem(STORAGE_KEY);
+    setError(null);
+    toast.success("Chat cleared");
+  }, []);
+
+  /**
    * Send a message to the AI
    */
   const sendMessage = useCallback(
@@ -86,10 +96,17 @@ export function useChat() {
       setIsLoading(true);
       setError(null);
 
+      // Validate message content
+      const trimmedContent = content.trim();
+      if (!trimmedContent || trimmedContent.length === 0) {
+        toast.error("Please enter a message");
+        return;
+      }
+
       // Add user message immediately
       const userMessage: ChatMessage = {
         role: "user",
-        content: content.trim(),
+        content: trimmedContent,
         timestamp: new Date().toISOString(),
       };
 
@@ -98,10 +115,15 @@ export function useChat() {
       saveChatHistory(updatedMessages);
 
       try {
+        // Filter and validate conversation history before sending
+        const validHistory = messages.filter(
+          (msg) => msg.content && msg.content.trim().length > 0
+        );
+
         // Send to AI
         const response = await sendChatMessage({
-          message: content.trim(),
-          conversationHistory: messages,
+          message: trimmedContent,
+          conversationHistory: validHistory,
         });
 
         // Add assistant response
@@ -122,29 +144,76 @@ export function useChat() {
             ? err
             : new Error("Failed to send message. Please try again.");
 
+        // Log error for debugging (only in development)
+        if (import.meta.env.DEV) {
+          console.error("Chat error details:", {
+            error,
+            message: error.message,
+            stack: error.stack,
+          });
+        }
+
         setError(error.message);
 
+        const errorMessage = error.message.toLowerCase();
+
         // Show appropriate error toast based on error type
-        if (error.message.includes("API key")) {
+        if (errorMessage.includes("api key") || errorMessage.includes("configuration")) {
           toast.error("API Configuration Error", {
             description:
               "Please configure your Cohere API key in the .env file",
             duration: 5000,
           });
-        } else if (error.message.includes("Rate limit")) {
+        } else if (errorMessage.includes("rate limit")) {
           toast.error("Rate Limit Exceeded", {
             description: "Please wait a moment before sending another message",
             duration: 4000,
           });
-        } else if (error.message.includes("quota")) {
+        } else if (errorMessage.includes("quota")) {
           toast.error("API Quota Exceeded", {
             description: "Please check your Cohere account limits",
             duration: 5000,
           });
-        } else {
-          toast.error("Failed to send message", {
-            description: error.message,
+        } else if (
+          errorMessage.includes("chat history") ||
+          errorMessage.includes("history must have a message") ||
+          errorMessage.includes("invalid role in chat_history")
+        ) {
+          toast.error("Chat History Error", {
+            description:
+              "There was an issue with the conversation history format. Try clearing the chat and starting fresh.",
+            duration: 6000,
+            action: {
+              label: "Clear Chat",
+              onClick: () => {
+                clearChat();
+              },
+            },
+          });
+        } else if (
+          errorMessage.includes("network error") &&
+          !errorMessage.includes("ai service")
+        ) {
+          // Only show network error if it's explicitly a network error, not an API error
+          toast.error("Network Error", {
+            description: "Please check your internet connection and try again",
             duration: 4000,
+          });
+        } else if (errorMessage.includes("timeout")) {
+          toast.error("Request Timeout", {
+            description: "The request took too long. Please try again",
+            duration: 4000,
+          });
+        } else if (errorMessage.includes("temporarily unavailable")) {
+          toast.error("Service Unavailable", {
+            description: "The AI service is temporarily down. Please try again later",
+            duration: 5000,
+          });
+        } else {
+          // Show the actual error message from the API
+          toast.error("Failed to send message", {
+            description: error.message || "An unexpected error occurred",
+            duration: 5000,
           });
         }
 
@@ -153,18 +222,8 @@ export function useChat() {
         setIsLoading(false);
       }
     },
-    [messages, isLoading]
+    [messages, isLoading, clearChat]
   );
-
-  /**
-   * Clear all chat messages
-   */
-  const clearChat = useCallback(() => {
-    setMessages([]);
-    localStorage.removeItem(STORAGE_KEY);
-    setError(null);
-    toast.success("Chat cleared");
-  }, []);
 
   /**
    * Retry last failed message
