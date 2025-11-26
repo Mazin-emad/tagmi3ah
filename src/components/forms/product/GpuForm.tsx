@@ -15,9 +15,8 @@ import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Select } from "@/components/ui/select";
 import { useCreateGpu } from "@/hooks/product/useGpus";
 import { useAllBrands } from "@/hooks/useBrands";
-import { useAllCategories } from "@/hooks/useCategories";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { ApiError } from "@/api/types";
 
 const gpuSchema = z.object({
@@ -32,15 +31,23 @@ const gpuSchema = z.object({
   recommendedPSUWatt: z.number().min(1, "Recommended PSU wattage is required"),
   performanceTier: z.string().min(1, "Performance tier is required"),
   lengthMm: z.number().min(1, "Length is required"),
-  image: z.any().refine((file) => file instanceof File && file.size > 0, "Image is required"),
+  image: z
+    .any()
+    .refine(
+      (file) => file instanceof File && file.size > 0,
+      "Image is required"
+    ),
 });
 
 type GpuFormData = z.infer<typeof gpuSchema>;
 
-export default function GpuForm() {
+interface GpuFormProps {
+  categoryId: number;
+}
+
+export default function GpuForm({ categoryId }: GpuFormProps) {
   const { mutate: createGpu, isPending } = useCreateGpu();
   const { data: brands = [], isLoading: brandsLoading } = useAllBrands();
-  const { data: categories = [], isLoading: categoriesLoading } = useAllCategories();
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   const form = useForm<GpuFormData>({
@@ -51,7 +58,7 @@ export default function GpuForm() {
       description: "",
       stock: 0,
       brandId: 0,
-      categoryId: 0,
+      categoryId: categoryId,
       vramGB: 0,
       tdpW: 0,
       recommendedPSUWatt: 0,
@@ -59,6 +66,10 @@ export default function GpuForm() {
       lengthMm: 0,
     },
   });
+
+  useEffect(() => {
+    form.setValue("categoryId", categoryId);
+  }, [categoryId, form]);
 
   const onSubmit = (data: GpuFormData) => {
     if (!imageFile) {
@@ -106,17 +117,15 @@ export default function GpuForm() {
     value: brand.id.toString(),
     label: brand.name,
   }));
-
-  const categoryOptions = categories.map((category) => ({
-    value: category.id.toString(),
-    label: category.name,
-  }));
+  brandOptions.unshift({ value: "", label: "Select a brand" });
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Add New GPU</CardTitle>
-        <CardDescription>Create a new graphics processing unit product</CardDescription>
+        <CardDescription>
+          Create a new graphics processing unit product
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -145,7 +154,9 @@ export default function GpuForm() {
                       type="number"
                       step="0.01"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseFloat(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -174,7 +185,9 @@ export default function GpuForm() {
                       id="stock"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -193,26 +206,9 @@ export default function GpuForm() {
                       placeholder="Select a brand"
                       options={brandOptions}
                       disabled={brandsLoading}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="categoryId"
-                render={({ field }) => (
-                  <FormItem>
-                    <Label htmlFor="categoryId">Category</Label>
-                    <Select
-                      id="categoryId"
-                      value={field.value?.toString() || ""}
-                      placeholder="Select a category"
-                      options={categoryOptions}
-                      disabled={categoriesLoading}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -229,7 +225,9 @@ export default function GpuForm() {
                       id="vramGB"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -246,7 +244,9 @@ export default function GpuForm() {
                       id="tdpW"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -258,12 +258,16 @@ export default function GpuForm() {
                 name="recommendedPSUWatt"
                 render={({ field }) => (
                   <FormItem>
-                    <Label htmlFor="recommendedPSUWatt">Recommended PSU (W)</Label>
+                    <Label htmlFor="recommendedPSUWatt">
+                      Recommended PSU (W)
+                    </Label>
                     <Input
                       id="recommendedPSUWatt"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -292,7 +296,9 @@ export default function GpuForm() {
                       id="lengthMm"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -332,4 +338,3 @@ export default function GpuForm() {
     </Card>
   );
 }
-

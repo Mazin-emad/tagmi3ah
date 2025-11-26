@@ -26,11 +26,10 @@ export function BuilderProductCard({ product }: { product: Product }) {
       ...prev,
       [product.categoryName]: product,
     }));
-    // console.log("hereeeeeeee",product)
+    
     if (product.category === "CPU") {
       setSocket((prev) => ({ ...prev, pSocket: product.socket ?? "all" }));
-      if (product.supportedMemoryTypes?.length == 1) {
-        //  console.log("supportedMemoryTypes",product.supportedMemoryTypes)
+      if (product.supportedMemoryTypes?.length === 1) {
         setramtype(() => {
           return product.supportedMemoryTypes?.[0] ?? "all";
         });
@@ -43,11 +42,8 @@ export function BuilderProductCard({ product }: { product: Product }) {
       setramtype(product.ramType ?? "all");
     }
     if (product.category === "RAM") {
-      if (items.CPU == undefined && items.Motherboard == undefined) {
+      if (items.CPU === undefined && items.Motherboard === undefined) {
         setramtype(product.type ?? "all");
-        // console.log(product.type)
-        // console.log(ramtype);
-        // console.log("hereeeeeeee",items)
       }
     }
   };

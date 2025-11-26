@@ -14,8 +14,8 @@ const loadChatHistory = (): ChatMessage[] => {
     if (stored) {
       return JSON.parse(stored);
     }
-  } catch (error) {
-    console.error("Failed to load chat history:", error);
+  } catch {
+    return [];
   }
   return [];
 };
@@ -23,13 +23,12 @@ const loadChatHistory = (): ChatMessage[] => {
 /**
  * Save chat history to localStorage
  */
-const saveChatHistory = (messages: ChatMessage[]): void => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-  } catch (error) {
-    console.error("Failed to save chat history:", error);
-  }
-};
+  const saveChatHistory = (messages: ChatMessage[]): void => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    } catch {
+    }
+  };
 
 /**
  * Hook for managing chat state and AI interactions
@@ -42,7 +41,7 @@ const saveChatHistory = (messages: ChatMessage[]): void => {
  *
  * const handleSend = () => {
  *   sendMessage("What CPU should I get for gaming?", {
- *     onSuccess: () => console.log("Message sent"),
+ *     onSuccess: () => {},
  *     onError: (err) => toast.error(err.message),
  *   });
  * };
@@ -55,7 +54,6 @@ export function useChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load history on mount
   useEffect(() => {
     const history = loadChatHistory();
     if (history.length > 0) {
@@ -96,14 +94,12 @@ export function useChat() {
       setIsLoading(true);
       setError(null);
 
-      // Validate message content
       const trimmedContent = content.trim();
       if (!trimmedContent || trimmedContent.length === 0) {
         toast.error("Please enter a message");
         return;
       }
 
-      // Add user message immediately
       const userMessage: ChatMessage = {
         role: "user",
         content: trimmedContent,
@@ -115,18 +111,15 @@ export function useChat() {
       saveChatHistory(updatedMessages);
 
       try {
-        // Filter and validate conversation history before sending
         const validHistory = messages.filter(
           (msg) => msg.content && msg.content.trim().length > 0
         );
 
-        // Send to AI
         const response = await sendChatMessage({
           message: trimmedContent,
           conversationHistory: validHistory,
         });
 
-        // Add assistant response
         const assistantMessage: ChatMessage = {
           role: "assistant",
           content: response.message,
@@ -144,20 +137,11 @@ export function useChat() {
             ? err
             : new Error("Failed to send message. Please try again.");
 
-        // Log error for debugging (only in development)
-        if (import.meta.env.DEV) {
-          console.error("Chat error details:", {
-            error,
-            message: error.message,
-            stack: error.stack,
-          });
-        }
 
         setError(error.message);
 
         const errorMessage = error.message.toLowerCase();
 
-        // Show appropriate error toast based on error type
         if (errorMessage.includes("api key") || errorMessage.includes("configuration")) {
           toast.error("API Configuration Error", {
             description:
@@ -194,7 +178,6 @@ export function useChat() {
           errorMessage.includes("network error") &&
           !errorMessage.includes("ai service")
         ) {
-          // Only show network error if it's explicitly a network error, not an API error
           toast.error("Network Error", {
             description: "Please check your internet connection and try again",
             duration: 4000,
@@ -210,7 +193,6 @@ export function useChat() {
             duration: 5000,
           });
         } else {
-          // Show the actual error message from the API
           toast.error("Failed to send message", {
             description: error.message || "An unexpected error occurred",
             duration: 5000,
@@ -234,7 +216,6 @@ export function useChat() {
       .find((msg) => msg.role === "user");
 
     if (lastUserMessage) {
-      // Remove the last user message and any subsequent assistant messages
       const lastUserIndex = messages.findIndex(
         (msg) => msg === lastUserMessage
       );
@@ -242,7 +223,6 @@ export function useChat() {
       setMessages(messagesBeforeLast);
       saveChatHistory(messagesBeforeLast);
 
-      // Retry sending
       sendMessage(lastUserMessage.content);
     }
   }, [messages, sendMessage]);

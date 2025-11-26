@@ -11,9 +11,8 @@ export interface Product {
   categoryName: string;
   brandName: string;
   stock: number;
-  // Optional fields for extended product information
-  category?: string; // Short category code (e.g., "CPU", "Motherboard", "RAM")
-  brand?: string; // Alternative brand field
+  category?: string;
+  brand?: string;
   socket?: string;
   ramType?: string;
   type?: string; // Product type (e.g., for RAM kits)

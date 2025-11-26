@@ -1,8 +1,6 @@
 /**
  * Barrel export for React Query hooks
  */
-
-// Auth hooks
 export {
   useRegister,
   useConfirmAccount,
@@ -13,7 +11,6 @@ export {
   useResetPassword,
 } from "./useAuth";
 
-// User hooks
 export {
   useMe,
   useAllUsers,
@@ -21,7 +18,6 @@ export {
   useUpdateMe,
 } from "./useUsers";
 
-// Product hooks
 export {
   useProducts,
   useProduct,
@@ -30,10 +26,8 @@ export {
   useDeleteProduct,
 } from "./useProducts";
 
-// Metadata hooks
 export { useMetadata, useUpdateMetadata } from "./useMetadata";
 
-// Order hooks
 export {
   useGetOrderById,
   useUpdateOrder,
@@ -45,5 +39,10 @@ export {
   useHandleStripeWebhook,
 } from "./useOrders";
 
-// Chat hooks
 export { useChat } from "./useChat";
+
+export { useProductData } from "./useProductData";
+export { useProductsData } from "./useProductsData";
+export { useProductFilters } from "./useProductFilters";
+export { usePagination } from "./usePagination";
+export { useQuantity } from "./useQuantity";

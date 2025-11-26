@@ -1,26 +1,23 @@
-import { useState } from "react";
 import type { Product } from "@/api/types";
 import { Card, CardTitle, CardHeader, CardContent } from "../ui/card";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import AddToCartButton from "./cart/AddToCartButton";
-import { MinusIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { QuantitySelector } from "../product/QuantitySelector";
+import { useQuantity } from "@/hooks/useQuantity";
 import { formatCurrency } from "@/lib/utils";
 
-export const ProductCard = ({ product }: { product: Product }) => {
+interface ProductCardProps {
+  product: Product;
+}
+
+export function ProductCard({ product }: ProductCardProps) {
   const navigate = useNavigate();
-  const [quantity, setQuantity] = useState(1);
-
-  const handleDecrease = () => {
-    if (quantity > 1) {
-      setQuantity(quantity - 1);
-    }
-  };
-
-  const handleIncrease = () => {
-    setQuantity(quantity + 1);
-  };
+  const { quantity, increase, decrease } = useQuantity({
+    initialQuantity: 1,
+    minQuantity: 1,
+  });
 
   const totalPrice = product.price * quantity;
   const productId =
@@ -46,34 +43,19 @@ export const ProductCard = ({ product }: { product: Product }) => {
             alt={product.name}
             className="w-full aspect-4/3 object-cover rounded-md"
           />
-          <Badge className="absolute top-2 right-2 text-xs shrink-0">{product.brandName}</Badge>
+          <Badge className="absolute top-2 right-2 text-xs shrink-0">
+            {product.brandName}
+          </Badge>
         </Link>
 
         <div className="flex-1 flex flex-col justify-between space-y-2">
-          {/* Quantity controls and price on same row */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-7 w-7"
-                onClick={handleDecrease}
-                disabled={quantity <= 1}
-              >
-                <MinusIcon className="h-3.5 w-3.5" />
-              </Button>
-              <span className="text-xs font-medium min-w-6 text-center">
-                {quantity}
-              </span>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-7 w-7"
-                onClick={handleIncrease}
-              >
-                <PlusIcon className="h-3.5 w-3.5" />
-              </Button>
-            </div>
+            <QuantitySelector
+              quantity={quantity}
+              onIncrease={increase}
+              onDecrease={decrease}
+              size="sm"
+            />
             <div className="text-right">
               <span className="text-base font-bold">
                 {formatCurrency(totalPrice)}
@@ -86,7 +68,6 @@ export const ProductCard = ({ product }: { product: Product }) => {
             </div>
           </div>
 
-          {/* Actions below */}
           <div className="flex gap-1.5">
             <AddToCartButton
               productId={productId}
@@ -106,4 +87,4 @@ export const ProductCard = ({ product }: { product: Product }) => {
       </CardContent>
     </Card>
   );
-};
+}

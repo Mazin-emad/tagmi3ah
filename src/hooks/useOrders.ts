@@ -63,7 +63,6 @@ export function useUpdateOrder() {
   return useMutation<OrderDto, ApiError, { id: number; body: OrderStatusRequest }>({
     mutationFn: ({ id, body }) => updateOrderStatus(id, body),
     onSuccess: (_, variables) => {
-      // Invalidate order queries
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.byId(variables.id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.me });
@@ -91,7 +90,6 @@ export function useCancelOrder() {
   return useMutation<void, ApiError, number>({
     mutationFn: (id: number) => cancelOrder(id),
     onSuccess: () => {
-      // Invalidate all order queries
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.me });
     },
@@ -125,7 +123,6 @@ export function usePrepareOrder() {
   return useMutation<OrderPaymentResponse, ApiError, OrderPaymentRequest>({
     mutationFn: (body: OrderPaymentRequest) => prepareOrder(body),
     onSuccess: () => {
-      // Invalidate cart and orders after order preparation
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.me });
       queryClient.invalidateQueries({ queryKey: ["cart", "me"] });
     },

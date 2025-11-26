@@ -15,9 +15,8 @@ import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Select } from "@/components/ui/select";
 import { useCreatePcCase } from "@/hooks/product/usePcCases";
 import { useAllBrands } from "@/hooks/useBrands";
-import { useAllCategories } from "@/hooks/useCategories";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { ApiError } from "@/api/types";
 
 const pcCaseSchema = z.object({
@@ -31,15 +30,23 @@ const pcCaseSchema = z.object({
   maxGpuLengthMm: z.number().min(1, "Max GPU length is required"),
   maxCpuCoolerHeightMm: z.number().min(1, "Max CPU cooler height is required"),
   psuFormFactor: z.string().min(1, "PSU form factor is required"),
-  image: z.any().refine((file) => file instanceof File && file.size > 0, "Image is required"),
+  image: z
+    .any()
+    .refine(
+      (file) => file instanceof File && file.size > 0,
+      "Image is required"
+    ),
 });
 
 type PcCaseFormData = z.infer<typeof pcCaseSchema>;
 
-export default function PcCaseForm() {
+interface PcCaseFormProps {
+  categoryId: number;
+}
+
+export default function PcCaseForm({ categoryId }: PcCaseFormProps) {
   const { mutate: createPcCase, isPending } = useCreatePcCase();
   const { data: brands = [], isLoading: brandsLoading } = useAllBrands();
-  const { data: categories = [], isLoading: categoriesLoading } = useAllCategories();
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   const form = useForm<PcCaseFormData>({
@@ -50,13 +57,17 @@ export default function PcCaseForm() {
       description: "",
       stock: 0,
       brandId: 0,
-      categoryId: 0,
+      categoryId: categoryId,
       formFactor: "",
       maxGpuLengthMm: 0,
       maxCpuCoolerHeightMm: 0,
       psuFormFactor: "",
     },
   });
+
+  useEffect(() => {
+    form.setValue("categoryId", categoryId);
+  }, [categoryId, form]);
 
   const onSubmit = (data: PcCaseFormData) => {
     if (!imageFile) {
@@ -103,11 +114,7 @@ export default function PcCaseForm() {
     value: brand.id.toString(),
     label: brand.name,
   }));
-
-  const categoryOptions = categories.map((category) => ({
-    value: category.id.toString(),
-    label: category.name,
-  }));
+  brandOptions.unshift({ value: "", label: "Select a brand" });
 
   return (
     <Card>
@@ -142,7 +149,9 @@ export default function PcCaseForm() {
                       type="number"
                       step="0.01"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseFloat(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -171,7 +180,9 @@ export default function PcCaseForm() {
                       id="stock"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -190,26 +201,9 @@ export default function PcCaseForm() {
                       placeholder="Select a brand"
                       options={brandOptions}
                       disabled={brandsLoading}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="categoryId"
-                render={({ field }) => (
-                  <FormItem>
-                    <Label htmlFor="categoryId">Category</Label>
-                    <Select
-                      id="categoryId"
-                      value={field.value?.toString() || ""}
-                      placeholder="Select a category"
-                      options={categoryOptions}
-                      disabled={categoriesLoading}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -222,7 +216,11 @@ export default function PcCaseForm() {
                 render={({ field }) => (
                   <FormItem>
                     <Label htmlFor="formFactor">Form Factor</Label>
-                    <Input id="formFactor" placeholder="e.g., ATX, mATX" {...field} />
+                    <Input
+                      id="formFactor"
+                      placeholder="e.g., ATX, mATX"
+                      {...field}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -238,7 +236,9 @@ export default function PcCaseForm() {
                       id="maxGpuLengthMm"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -250,12 +250,16 @@ export default function PcCaseForm() {
                 name="maxCpuCoolerHeightMm"
                 render={({ field }) => (
                   <FormItem>
-                    <Label htmlFor="maxCpuCoolerHeightMm">Max CPU Cooler Height (mm)</Label>
+                    <Label htmlFor="maxCpuCoolerHeightMm">
+                      Max CPU Cooler Height (mm)
+                    </Label>
                     <Input
                       id="maxCpuCoolerHeightMm"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -268,7 +272,11 @@ export default function PcCaseForm() {
                 render={({ field }) => (
                   <FormItem>
                     <Label htmlFor="psuFormFactor">PSU Form Factor</Label>
-                    <Input id="psuFormFactor" placeholder="e.g., ATX, SFX" {...field} />
+                    <Input
+                      id="psuFormFactor"
+                      placeholder="e.g., ATX, SFX"
+                      {...field}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -307,4 +315,3 @@ export default function PcCaseForm() {
     </Card>
   );
 }
-

@@ -19,12 +19,10 @@ export default function Chat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Focus input on mount
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
@@ -36,12 +34,7 @@ export default function Chat() {
     const messageToSend = input.trim();
     setInput("");
 
-    sendMessage(messageToSend, {
-      onError: (err) => {
-        // Error already handled in hook with toast
-        console.error("Chat error:", err);
-      },
-    });
+    sendMessage(messageToSend);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

@@ -26,9 +26,7 @@ export function ProductPagination({
     return null;
   }
 
-  // Helper to build URL with page param
   const buildPageUrl = (page: number): string => {
-    // page is 0-indexed, convert to 1-indexed for URL
     const pageNum = page + 1;
     const newSearchParams = new URLSearchParams(searchParams);
 
@@ -47,25 +45,20 @@ export function ProductPagination({
     const maxVisible = 5;
 
     if (totalPages <= maxVisible) {
-      // Show all pages if total pages is less than max visible
       for (let i = 0; i < totalPages; i++) {
         pages.push(i);
       }
     } else {
-      // Always show first page
       pages.push(0);
 
       if (currentPage <= 2) {
-        // Near the start
         pages.push(1, 2, 3);
         pages.push("ellipsis");
         pages.push(totalPages - 1);
       } else if (currentPage >= totalPages - 3) {
-        // Near the end
         pages.push("ellipsis");
         pages.push(totalPages - 3, totalPages - 2, totalPages - 1);
       } else {
-        // In the middle
         pages.push("ellipsis");
         pages.push(currentPage - 1, currentPage, currentPage + 1);
         pages.push("ellipsis");

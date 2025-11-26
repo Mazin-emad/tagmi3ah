@@ -15,9 +15,8 @@ import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Select } from "@/components/ui/select";
 import { useCreateRamKit } from "@/hooks/product/useRamKits";
 import { useAllBrands } from "@/hooks/useBrands";
-import { useAllCategories } from "@/hooks/useCategories";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { ApiError } from "@/api/types";
 
 const ramKitSchema = z.object({
@@ -32,15 +31,23 @@ const ramKitSchema = z.object({
   speedMHz: z.number().min(1, "Speed is required"),
   type: z.string().min(1, "Type is required"),
   casLatency: z.number().min(1, "CAS latency is required"),
-  image: z.any().refine((file) => file instanceof File && file.size > 0, "Image is required"),
+  image: z
+    .any()
+    .refine(
+      (file) => file instanceof File && file.size > 0,
+      "Image is required"
+    ),
 });
 
 type RamKitFormData = z.infer<typeof ramKitSchema>;
 
-export default function RamKitForm() {
+interface RamKitFormProps {
+  categoryId: number;
+}
+
+export default function RamKitForm({ categoryId }: RamKitFormProps) {
   const { mutate: createRamKit, isPending } = useCreateRamKit();
   const { data: brands = [], isLoading: brandsLoading } = useAllBrands();
-  const { data: categories = [], isLoading: categoriesLoading } = useAllCategories();
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   const form = useForm<RamKitFormData>({
@@ -51,7 +58,7 @@ export default function RamKitForm() {
       description: "",
       stock: 0,
       brandId: 0,
-      categoryId: 0,
+      categoryId: categoryId,
       capacityGB: 0,
       modules: 0,
       speedMHz: 0,
@@ -59,6 +66,10 @@ export default function RamKitForm() {
       casLatency: 0,
     },
   });
+
+  useEffect(() => {
+    form.setValue("categoryId", categoryId);
+  }, [categoryId, form]);
 
   const onSubmit = (data: RamKitFormData) => {
     if (!imageFile) {
@@ -106,11 +117,7 @@ export default function RamKitForm() {
     value: brand.id.toString(),
     label: brand.name,
   }));
-
-  const categoryOptions = categories.map((category) => ({
-    value: category.id.toString(),
-    label: category.name,
-  }));
+  brandOptions.unshift({ value: "", label: "Select a brand" });
 
   return (
     <Card>
@@ -145,7 +152,9 @@ export default function RamKitForm() {
                       type="number"
                       step="0.01"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseFloat(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -174,7 +183,9 @@ export default function RamKitForm() {
                       id="stock"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -193,26 +204,9 @@ export default function RamKitForm() {
                       placeholder="Select a brand"
                       options={brandOptions}
                       disabled={brandsLoading}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="categoryId"
-                render={({ field }) => (
-                  <FormItem>
-                    <Label htmlFor="categoryId">Category</Label>
-                    <Select
-                      id="categoryId"
-                      value={field.value?.toString() || ""}
-                      placeholder="Select a category"
-                      options={categoryOptions}
-                      disabled={categoriesLoading}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -229,7 +223,9 @@ export default function RamKitForm() {
                       id="capacityGB"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -246,7 +242,9 @@ export default function RamKitForm() {
                       id="modules"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -263,7 +261,9 @@ export default function RamKitForm() {
                       id="speedMHz"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -276,7 +276,11 @@ export default function RamKitForm() {
                 render={({ field }) => (
                   <FormItem>
                     <Label htmlFor="type">Type</Label>
-                    <Input id="type" placeholder="e.g., DDR4, DDR5" {...field} />
+                    <Input
+                      id="type"
+                      placeholder="e.g., DDR4, DDR5"
+                      {...field}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -292,7 +296,9 @@ export default function RamKitForm() {
                       id="casLatency"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -332,4 +338,3 @@ export default function RamKitForm() {
     </Card>
   );
 }
-

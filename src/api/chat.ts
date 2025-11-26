@@ -58,7 +58,6 @@ export async function sendChatMessage(
     const client = getCohereClient();
     const { message, conversationHistory = [] } = request;
 
-    // Build conversation history with system prompt
     const systemPrompt = `You are an expert PC parts advisor specializing in computer hardware recommendations and compatibility advice. Your role is to help users build compatible PC systems by recommending appropriate components.
 
 **Your Expertise:**
@@ -97,17 +96,15 @@ export async function sendChatMessage(
 
 Always be helpful, clear, and focus on building compatible PC systems that meet the user's needs and budget.`;
 
-    // Prepare messages for Cohere
     const chatHistory =
       conversationHistory.length > 0
         ? formatMessagesForCohere(conversationHistory)
         : [];
 
-    // Use Cohere chat API
     const response = await client.chat({
       message: message,
       chatHistory: chatHistory.length > 0 ? chatHistory : undefined,
-      model: "command-a-03-2025", // Using Command R+ for better reasoning
+      model: "command-a-03-2025",
       preamble: systemPrompt,
       temperature: 0.7,
       maxTokens: 2000,
@@ -123,19 +120,11 @@ Always be helpful, clear, and focus on building compatible PC systems that meet 
       },
     };
   } catch (error: unknown) {
-    // Log the full error for debugging (only in development)
-    if (import.meta.env.DEV) {
-      console.error("Cohere API Error:", error);
-    }
-
-    // Handle Cohere SDK error structure
     const cohereError = error as any;
     
-    // Extract error message from various possible locations
     let apiErrorMessage: string | undefined;
     let statusCode: number | undefined;
 
-    // Check for Cohere SDK error structure
     if (cohereError?.body) {
       if (typeof cohereError.body === "string") {
         try {
@@ -151,7 +140,6 @@ Always be helpful, clear, and focus on building compatible PC systems that meet 
       }
     }
 
-    // Check for status code in error object
     if (!statusCode && cohereError?.status) {
       statusCode = cohereError.status;
     }
@@ -159,7 +147,6 @@ Always be helpful, clear, and focus on building compatible PC systems that meet 
       statusCode = cohereError.statusCode;
     }
 
-    // Get error message from various sources
     const errorMessage = 
       apiErrorMessage || 
       cohereError?.message || 
@@ -167,7 +154,6 @@ Always be helpful, clear, and focus on building compatible PC systems that meet 
 
     const errorMessageLower = errorMessage.toLowerCase();
 
-    // Handle errors by status code first (more reliable)
     if (statusCode) {
       if (statusCode === 401 || statusCode === 403) {
         throw new Error(
@@ -185,7 +171,6 @@ Always be helpful, clear, and focus on building compatible PC systems that meet 
         );
       }
       if (statusCode >= 400 && statusCode < 500) {
-        // Client error - check for specific messages
         if (
           errorMessageLower.includes("all elements in history must have a message") ||
           errorMessageLower.includes("history must have a message") ||
@@ -200,7 +185,6 @@ Always be helpful, clear, and focus on building compatible PC systems that meet 
       }
     }
 
-    // Handle specific error messages (fallback if no status code)
     if (
       errorMessageLower.includes("all elements in history must have a message") ||
       errorMessageLower.includes("history must have a message") ||
@@ -234,8 +218,6 @@ Always be helpful, clear, and focus on building compatible PC systems that meet 
       );
     }
 
-    // Only treat as network error if it's actually a network issue
-    // Check for actual network errors (not API errors that mention "fetch")
     if (
       error instanceof TypeError &&
       (error.message.includes("Failed to fetch") || error.message.includes("NetworkError"))
@@ -249,7 +231,6 @@ Always be helpful, clear, and focus on building compatible PC systems that meet 
       throw new Error("Request timed out. Please try again.");
     }
 
-    // Generic error - show the actual error message if available
     if (errorMessage && errorMessage !== "Error") {
       throw new Error(`AI service error: ${errorMessage}`);
     }

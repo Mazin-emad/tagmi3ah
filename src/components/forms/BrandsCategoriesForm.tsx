@@ -119,7 +119,6 @@ export default function BrandsCategoriesForm() {
               {...form.register("type")}
               onChange={(e) => {
                 form.register("type").onChange(e);
-                // Reset mode when switching type
                 setMode("create");
                 form.setValue("id", undefined);
                 form.setValue("name", "");

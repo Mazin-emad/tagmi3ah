@@ -20,7 +20,6 @@ export const productsApi = {
   getAll: async (options?: PageRequest): Promise<
     PagedResponse<Product>
   > => {
-    // If no pagination params, fetch all products without params
     const params = options?.page !== undefined && options?.size !== undefined
       ? { page: options.page, size: options.size }
       : undefined;
@@ -30,18 +29,15 @@ export const productsApi = {
     });
     const data = response.data as unknown;
     
-    // Handle non-paginated response (array) - always return as array
     if (Array.isArray(data)) {
       const allProducts = data as Product[];
       
-      // If pagination params were provided, do client-side pagination
       if (options?.page !== undefined && options?.size !== undefined) {
         const page = options.page;
         const size = options.size;
         const totalElements = allProducts.length;
         const totalPages = Math.ceil(totalElements / size);
 
-        // Client-side pagination: slice the array based on page and size
         const startIndex = page * size;
         const endIndex = startIndex + size;
         const paginatedContent = allProducts.slice(startIndex, endIndex);
@@ -55,7 +51,6 @@ export const productsApi = {
         };
       }
       
-      // No pagination - return all products
       return {
         content: allProducts,
         page: 0,
@@ -64,7 +59,6 @@ export const productsApi = {
         totalPages: 1,
       };
     }
-    // Handle paginated response from backend
     return data as PagedResponse<Product>;
   },
 
@@ -82,7 +76,6 @@ export const productsApi = {
   create: async (
     data: CreateProductRequest
   ): Promise<CreateProductResponse> => {
-    // Handle file upload if image is a File
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("price", data.price.toString());

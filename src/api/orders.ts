@@ -8,7 +8,6 @@ import type {
   OrderPaymentResponse,
 } from "./types";
 
-// Re-export types for convenience
 export type {
   OrderDto,
   OrdersResponse,

@@ -36,7 +36,6 @@ const Builder = () => {
     switch (currentShow) {
       case "CPUs":
         return (cpus ?? []).filter((p) => {
-          // Only filter by motherboard socket if a motherboard is selected
           const hasMotherboard = items.Motherboard !== undefined;
           const socketMatches =
             !hasMotherboard ||
@@ -44,7 +43,6 @@ const Builder = () => {
             socket.mSocket === "all" ||
             p.socket === socket.mSocket;
 
-          // Only filter by RAM type if RAM is selected (not if only CPU is selected)
           const hasRAM = items.RAM !== undefined;
           const supportedMemoryTypes = (p.supportedMemoryTypes ?? []).map(
             (value) => value.toUpperCase()

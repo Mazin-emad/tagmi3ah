@@ -47,7 +47,6 @@ export default function AddToCartButton({
     try {
       setIsAdding(true);
 
-      // Add to cart (this will handle server sync automatically)
       addItem(product, quantity);
 
       toast.success("Added to cart");

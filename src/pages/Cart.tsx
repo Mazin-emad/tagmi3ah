@@ -12,7 +12,6 @@ import {
 import { toast } from "sonner";
 import { usePrepareOrder } from "@/hooks";
 import { Card, CardContent } from "@/components/ui/card";
-import { LoadingComponent } from "@/components/global/LoadingComponents";
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -34,17 +33,13 @@ export default function Cart() {
       return;
     }
 
-    // Call prepareOrder with CARD payment method (default)
-    // The server will return a Stripe URL for card payments
     prepareOrder(
       { paymentMethod: "CARD" },
       {
         onSuccess: (response) => {
           if (response.url) {
-            // Redirect to Stripe checkout page
             window.location.href = response.url;
           } else {
-            // If no URL, navigate to checkout page
             navigate("/checkout");
           }
         },
@@ -151,7 +146,7 @@ export default function Cart() {
                       {/* Product Image */}
                       <Link
                         to={`/products/${item.id}`}
-                        className="flex-shrink-0 w-full sm:w-32 h-32 sm:h-32 overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
+                        className="shrink-0 w-full sm:w-32 h-32 sm:h-32 overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
                       >
                         <img
                           src={item.imageUrl}
@@ -201,7 +196,7 @@ export default function Cart() {
                                 <MinusIcon className="h-4 w-4" />
                               )}
                             </Button>
-                            <span className="min-w-[3rem] text-center font-medium">
+                            <span className="min-w-12 text-center font-medium">
                               {item.quantity}
                             </span>
                             <Button
@@ -343,4 +338,3 @@ export default function Cart() {
     </div>
   );
 }
-

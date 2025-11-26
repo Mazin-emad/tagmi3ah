@@ -87,10 +87,8 @@ export default function Sidebar() {
       return;
     }
 
-    // Optimistic local cart update
     addItems(selectedProducts);
 
-    // Sync with server cart
     try {
       await Promise.all(
         selectedProducts.map((p) => {

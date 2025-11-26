@@ -22,10 +22,6 @@ import type { ApiError } from "@/api/types";
 export function useRegister() {
   return useMutation({
     mutationFn: (data: AuthRegisterRequest) => authApi.register(data),
-    onError: (error: ApiError) => {
-      // Error is automatically converted to ApiError by axios interceptor
-      console.error("Registration failed:", error);
-    },
   });
 }
 
@@ -68,7 +64,6 @@ export function useLogin() {
   return useMutation({
     mutationFn: (data: AuthLoginRequest) => authApi.login(data),
     onSuccess: () => {
-      // Invalidate auth queries to refetch user data
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.me });
     },
   });
@@ -92,10 +87,8 @@ export function useLogout() {
   return useMutation({
     mutationFn: () => authApi.logout(),
     onSuccess: () => {
-      // Clear auth and user data from cache
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.me });
       queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
-      // Optionally clear all queries
       queryClient.clear();
     },
   });

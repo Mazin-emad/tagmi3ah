@@ -15,7 +15,6 @@ import type { CreateProductRequest, PageRequest } from "@/api/types";
  * ```
  */
 export function useProducts(options?: PageRequest) {
-  // If no options provided, use a different query key for "all products"
   const queryKey = options?.page !== undefined && options?.size !== undefined
     ? queryKeys.products.paged(options.page, options.size)
     : queryKeys.products.all;
@@ -23,7 +22,7 @@ export function useProducts(options?: PageRequest) {
   return useQuery({
     queryKey,
     queryFn: () => productsApi.getAll(options),
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 2 * 60 * 1000,
   });
 }
 
@@ -65,7 +64,6 @@ export function useCreateProduct() {
   return useMutation({
     mutationFn: (data: CreateProductRequest) => productsApi.create(data),
     onSuccess: () => {
-      // Invalidate products list to refetch
       queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
     },
   });

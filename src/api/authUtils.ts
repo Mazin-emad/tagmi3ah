@@ -13,22 +13,17 @@ let isLoggingOut = false;
  * Use this when user explicitly logs out
  */
 export async function clearAuthState(): Promise<void> {
-  // Prevent infinite loops
   if (isLoggingOut) {
     return;
   }
 
   try {
     isLoggingOut = true;
-    // Call logout endpoint to clear cookie on server
     await authApi.logout();
-  } catch (error) {
-    // Silently fail - cookie might already be cleared or endpoint might not exist
-    console.debug("Logout call failed (this is usually ok):", error);
+  } catch {
   } finally {
     isLoggingOut = false;
   }
-  // Always delete cookie client-side as fallback
   deleteCookie("jwt");
 }
 
@@ -54,7 +49,6 @@ export function clearAuthCache(queryClient: QueryClient): void {
  */
 export function deleteCookie(name: string): void {
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-  // Also try with domain if needed
   const hostname = window.location.hostname;
   if (hostname !== "localhost") {
     document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${hostname};`;

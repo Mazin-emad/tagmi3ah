@@ -43,17 +43,13 @@ export default function SideCart({ open, onClose }: SideCartProps) {
       return;
     }
 
-    // Call prepareOrder with CARD payment method (default)
-    // The server will return a Stripe URL for card payments
     prepareOrder(
       { paymentMethod: "CARD" },
       {
         onSuccess: (response) => {
           if (response.url) {
-            // Redirect to Stripe checkout page
             window.location.href = response.url;
           } else {
-            // If no URL, navigate to checkout page
             onClose();
             navigate("/checkout");
           }

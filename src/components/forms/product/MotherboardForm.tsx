@@ -16,9 +16,8 @@ import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Select } from "@/components/ui/select";
 import { useCreateMotherboard } from "@/hooks/product/useMotherboards";
 import { useAllBrands } from "@/hooks/useBrands";
-import { useAllCategories } from "@/hooks/useCategories";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { ApiError } from "@/api/types";
 
 const motherboardSchema = z.object({
@@ -37,15 +36,23 @@ const motherboardSchema = z.object({
   pcieVersion: z.string().min(1, "PCIe version is required"),
   m2Slots: z.number().min(0, "M.2 slots cannot be negative"),
   wifi: z.boolean(),
-  image: z.any().refine((file) => file instanceof File && file.size > 0, "Image is required"),
+  image: z
+    .any()
+    .refine(
+      (file) => file instanceof File && file.size > 0,
+      "Image is required"
+    ),
 });
 
 type MotherboardFormData = z.infer<typeof motherboardSchema>;
 
-export default function MotherboardForm() {
+interface MotherboardFormProps {
+  categoryId: number;
+}
+
+export default function MotherboardForm({ categoryId }: MotherboardFormProps) {
   const { mutate: createMotherboard, isPending } = useCreateMotherboard();
   const { data: brands = [], isLoading: brandsLoading } = useAllBrands();
-  const { data: categories = [], isLoading: categoriesLoading } = useAllCategories();
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   const form = useForm<MotherboardFormData>({
@@ -56,7 +63,7 @@ export default function MotherboardForm() {
       description: "",
       stock: 0,
       brandId: 0,
-      categoryId: 0,
+      categoryId: categoryId,
       socket: "",
       chipset: "",
       formFactor: "",
@@ -68,6 +75,10 @@ export default function MotherboardForm() {
       wifi: false,
     },
   });
+
+  useEffect(() => {
+    form.setValue("categoryId", categoryId);
+  }, [categoryId, form]);
 
   const onSubmit = (data: MotherboardFormData) => {
     if (!imageFile) {
@@ -119,11 +130,7 @@ export default function MotherboardForm() {
     value: brand.id.toString(),
     label: brand.name,
   }));
-
-  const categoryOptions = categories.map((category) => ({
-    value: category.id.toString(),
-    label: category.name,
-  }));
+  brandOptions.unshift({ value: "", label: "Select a brand" });
 
   return (
     <Card>
@@ -158,7 +165,9 @@ export default function MotherboardForm() {
                       type="number"
                       step="0.01"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseFloat(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -187,7 +196,9 @@ export default function MotherboardForm() {
                       id="stock"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -206,26 +217,9 @@ export default function MotherboardForm() {
                       placeholder="Select a brand"
                       options={brandOptions}
                       disabled={brandsLoading}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="categoryId"
-                render={({ field }) => (
-                  <FormItem>
-                    <Label htmlFor="categoryId">Category</Label>
-                    <Select
-                      id="categoryId"
-                      value={field.value?.toString() || ""}
-                      placeholder="Select a category"
-                      options={categoryOptions}
-                      disabled={categoriesLoading}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -274,7 +268,11 @@ export default function MotherboardForm() {
                 render={({ field }) => (
                   <FormItem>
                     <Label htmlFor="ramType">RAM Type</Label>
-                    <Input id="ramType" placeholder="e.g., DDR4, DDR5" {...field} />
+                    <Input
+                      id="ramType"
+                      placeholder="e.g., DDR4, DDR5"
+                      {...field}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -290,7 +288,9 @@ export default function MotherboardForm() {
                       id="ramSlots"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -302,12 +302,16 @@ export default function MotherboardForm() {
                 name="maxMemorySpeedMHz"
                 render={({ field }) => (
                   <FormItem>
-                    <Label htmlFor="maxMemorySpeedMHz">Max Memory Speed (MHz)</Label>
+                    <Label htmlFor="maxMemorySpeedMHz">
+                      Max Memory Speed (MHz)
+                    </Label>
                     <Input
                       id="maxMemorySpeedMHz"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -336,7 +340,9 @@ export default function MotherboardForm() {
                       id="m2Slots"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -394,4 +400,3 @@ export default function MotherboardForm() {
     </Card>
   );
 }
-

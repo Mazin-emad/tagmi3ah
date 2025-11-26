@@ -14,31 +14,29 @@ export function CartProvider({
 }: {
   children: ReactNode;
 }): JSX.Element {
-  // Fetch cart from server
   const { data: serverCart } = useGetMyCart();
 
-  // Track which product is currently being updated
-  const [updatingProductId, setUpdatingProductId] = useState<string | null>(null);
+  const [updatingProductId, setUpdatingProductId] = useState<string | null>(
+    null
+  );
 
-  // Server sync mutations
   const { mutate: addToServer } = useAddToCart();
   const updateCartItemMutation = useUpdateCartItem();
   const { mutate: deleteFromServer } = useDeleteCartItem();
   const { mutate: deleteAllCartItemsOnServer } = useDeleteAllCartItems();
 
-  // Wrapper for updateCartItem that tracks loading state
-  const updateCartItemOnServer = (body: { productId: number; quantity: number }) => {
+  const updateCartItemOnServer = (body: {
+    productId: number;
+    quantity: number;
+  }) => {
     setUpdatingProductId(String(body.productId));
     updateCartItemMutation.mutate(body, {
       onSettled: () => {
-        // Clear loading state when mutation completes (success or error)
         setUpdatingProductId(null);
       },
     });
   };
 
-  // Convert server cart items to local cart items
-  // The server already includes full product data, so we just need to map it
   const items = useMemo<LocalCartItem[]>(() => {
     if (!serverCart?.items || serverCart.items.length === 0) {
       return [];
@@ -46,11 +44,10 @@ export function CartProvider({
 
     return serverCart.items.map((cartItem) => {
       const product = cartItem.product;
-      // Convert server product format to our Product type
       const localProduct: Product = {
         id: String(product.id),
         name: product.name,
-        image: product.imageUrl,
+        imageUrl: product.imageUrl,
         price: product.price,
         description: product.description || "",
         categoryName: product.categoryName || "",
@@ -58,7 +55,6 @@ export function CartProvider({
         stock: product.stock,
       };
 
-      // Return as LocalCartItem with quantity
       return {
         ...localProduct,
         quantity: cartItem.quantity,
@@ -75,15 +71,12 @@ export function CartProvider({
     const productIdNum = toNumberId(product.id);
     if (productIdNum === null) return;
 
-    // Check if item already exists in cart
     const existing = items.find((item) => item.id === product.id);
 
     if (existing) {
-      // Update quantity using updateCartItem
       const newQuantity = existing.quantity + qty;
       updateItemQuantity(product.id, newQuantity);
     } else {
-      // Add new item to server cart (React Query will refetch and update items)
       addToServer({ productId: productIdNum, quantity: qty });
     }
   };
@@ -97,12 +90,10 @@ export function CartProvider({
     const productIdNum = toNumberId(productId);
     if (productIdNum === null) return;
 
-    // Update quantity on server (React Query will refetch and update items)
     updateCartItemOnServer({ productId: productIdNum, quantity });
   };
 
   const addItems = (products: Product[]) => {
-    // Add each product to server cart (React Query will refetch and update items)
     const uniqueIds = new Set<number>();
     for (const p of products) {
       const n = toNumberId(p.id);
@@ -114,7 +105,6 @@ export function CartProvider({
   };
 
   const removeItem = (productId: string) => {
-    // Delete from server cart (React Query will refetch and update items)
     const productIdNum = toNumberId(productId);
     if (productIdNum !== null) {
       deleteFromServer(productIdNum);
@@ -122,7 +112,6 @@ export function CartProvider({
   };
 
   const clearCart = () => {
-    // Clear all items from server using the delete all endpoint
     deleteAllCartItemsOnServer();
   };
 

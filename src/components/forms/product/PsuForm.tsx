@@ -15,9 +15,8 @@ import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Select } from "@/components/ui/select";
 import { useCreatePsu } from "@/hooks/product/usePsus";
 import { useAllBrands } from "@/hooks/useBrands";
-import { useAllCategories } from "@/hooks/useCategories";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { ApiError } from "@/api/types";
 
 const psuSchema = z.object({
@@ -31,15 +30,23 @@ const psuSchema = z.object({
   efficiency: z.string().min(1, "Efficiency is required"),
   modularity: z.string().min(1, "Modularity is required"),
   formFactor: z.string().min(1, "Form factor is required"),
-  image: z.any().refine((file) => file instanceof File && file.size > 0, "Image is required"),
+  image: z
+    .any()
+    .refine(
+      (file) => file instanceof File && file.size > 0,
+      "Image is required"
+    ),
 });
 
 type PsuFormData = z.infer<typeof psuSchema>;
 
-export default function PsuForm() {
+interface PsuFormProps {
+  categoryId: number;
+}
+
+export default function PsuForm({ categoryId }: PsuFormProps) {
   const { mutate: createPsu, isPending } = useCreatePsu();
   const { data: brands = [], isLoading: brandsLoading } = useAllBrands();
-  const { data: categories = [], isLoading: categoriesLoading } = useAllCategories();
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   const form = useForm<PsuFormData>({
@@ -50,13 +57,17 @@ export default function PsuForm() {
       description: "",
       stock: 0,
       brandId: 0,
-      categoryId: 0,
+      categoryId: categoryId,
       wattage: 0,
       efficiency: "",
       modularity: "",
       formFactor: "",
     },
   });
+
+  useEffect(() => {
+    form.setValue("categoryId", categoryId);
+  }, [categoryId, form]);
 
   const onSubmit = (data: PsuFormData) => {
     if (!imageFile) {
@@ -103,17 +114,15 @@ export default function PsuForm() {
     value: brand.id.toString(),
     label: brand.name,
   }));
-
-  const categoryOptions = categories.map((category) => ({
-    value: category.id.toString(),
-    label: category.name,
-  }));
+  brandOptions.unshift({ value: "", label: "Select a brand" });
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Add New PSU</CardTitle>
-        <CardDescription>Create a new power supply unit product</CardDescription>
+        <CardDescription>
+          Create a new power supply unit product
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -142,7 +151,9 @@ export default function PsuForm() {
                       type="number"
                       step="0.01"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseFloat(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -171,7 +182,9 @@ export default function PsuForm() {
                       id="stock"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -190,26 +203,9 @@ export default function PsuForm() {
                       placeholder="Select a brand"
                       options={brandOptions}
                       disabled={brandsLoading}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="categoryId"
-                render={({ field }) => (
-                  <FormItem>
-                    <Label htmlFor="categoryId">Category</Label>
-                    <Select
-                      id="categoryId"
-                      value={field.value?.toString() || ""}
-                      placeholder="Select a category"
-                      options={categoryOptions}
-                      disabled={categoriesLoading}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -226,7 +222,9 @@ export default function PsuForm() {
                       id="wattage"
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
                     />
                     <FormMessage />
                   </FormItem>
@@ -239,7 +237,11 @@ export default function PsuForm() {
                 render={({ field }) => (
                   <FormItem>
                     <Label htmlFor="efficiency">Efficiency</Label>
-                    <Input id="efficiency" placeholder="e.g., 80+ Gold" {...field} />
+                    <Input
+                      id="efficiency"
+                      placeholder="e.g., 80+ Gold"
+                      {...field}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -251,7 +253,11 @@ export default function PsuForm() {
                 render={({ field }) => (
                   <FormItem>
                     <Label htmlFor="modularity">Modularity</Label>
-                    <Input id="modularity" placeholder="e.g., Semi" {...field} />
+                    <Input
+                      id="modularity"
+                      placeholder="e.g., Semi"
+                      {...field}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -302,4 +308,3 @@ export default function PsuForm() {
     </Card>
   );
 }
-

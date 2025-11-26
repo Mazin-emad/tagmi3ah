@@ -2,7 +2,6 @@ import { jsonApiClient } from "./product/client";
 import type { AxiosResponse } from "axios";
 import type { CartItem, Cart, CartItemRequest } from "@/types/cart";
 
-// Re-export types for convenience
 export type { CartItem, Cart, CartItemRequest };
 
 export async function getMyCart(): Promise<Cart> {
