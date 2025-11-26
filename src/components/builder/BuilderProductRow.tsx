@@ -162,7 +162,7 @@ export function BuilderProductRow({ product }: BuilderProductRowProps) {
               >
                 <MinusIcon className="h-3.5 w-3.5" />
               </Button>
-              <span className="text-xs font-medium min-w-[1.5rem] text-center">
+              <span className="text-xs font-medium min-w-6 text-center">
                 {quantity}
               </span>
               <Button

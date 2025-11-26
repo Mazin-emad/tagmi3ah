@@ -13,8 +13,14 @@ import { LoadingComponent } from "@/components/global/LoadingComponents";
 import { cn } from "@/lib/utils";
 
 export default function Chat() {
-  const { messages, sendMessage, clearChat, retryLastMessage, isLoading, error } =
-    useChat();
+  const {
+    messages,
+    sendMessage,
+    clearChat,
+    retryLastMessage,
+    isLoading,
+    error,
+  } = useChat();
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -45,11 +51,14 @@ export default function Chat() {
   };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      toast.success("Copied to clipboard");
-    }).catch(() => {
-      toast.error("Failed to copy");
-    });
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        toast.success("Copied to clipboard");
+      })
+      .catch(() => {
+        toast.error("Failed to copy");
+      });
   };
 
   return (
@@ -61,7 +70,8 @@ export default function Chat() {
             AI PC Parts Advisor
           </h1>
           <p className="text-muted-foreground">
-            Get expert recommendations for PC components and compatibility advice
+            Get expert recommendations for PC components and compatibility
+            advice
           </p>
         </div>
 
@@ -163,7 +173,7 @@ export default function Chat() {
                     )}
                   >
                     {message.role === "assistant" && (
-                      <div className="flex-shrink-0">
+                      <div className="shrink-0">
                         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                           <svg
                             className="h-5 w-5 text-primary"
@@ -189,7 +199,7 @@ export default function Chat() {
                           : "bg-muted text-foreground"
                       )}
                     >
-                      <p className="text-sm whitespace-pre-wrap break-words">
+                      <p className="text-sm whitespace-pre-wrap wrap-break-word">
                         {message.content}
                       </p>
                       <div className="flex items-center justify-between mt-2">
@@ -202,10 +212,13 @@ export default function Chat() {
                                 : "text-muted-foreground"
                             )}
                           >
-                            {new Date(message.timestamp).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
+                            {new Date(message.timestamp).toLocaleTimeString(
+                              [],
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            )}
                           </p>
                         )}
                         <Button
@@ -225,7 +238,7 @@ export default function Chat() {
                       </div>
                     </div>
                     {message.role === "user" && (
-                      <div className="flex-shrink-0">
+                      <div className="shrink-0">
                         <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
                           <span className="text-sm font-medium text-primary-foreground">
                             You
@@ -237,7 +250,7 @@ export default function Chat() {
                 ))}
                 {isLoading && (
                   <div className="flex gap-3 justify-start">
-                    <div className="flex-shrink-0">
+                    <div className="shrink-0">
                       <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                         <svg
                           className="h-5 w-5 text-primary"
@@ -286,7 +299,10 @@ export default function Chat() {
                 onInput={(e) => {
                   const target = e.target as HTMLTextAreaElement;
                   target.style.height = "auto";
-                  target.style.height = `${Math.min(target.scrollHeight, 128)}px`;
+                  target.style.height = `${Math.min(
+                    target.scrollHeight,
+                    128
+                  )}px`;
                 }}
               />
               <Button
