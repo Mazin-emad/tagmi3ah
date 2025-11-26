@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Select } from "@/components/ui/select";
 import { useAllBrands } from "@/hooks/useBrands";
+import { useAllCategories } from "@/hooks/useCategories";
 import { useUpdateGpu } from "@/hooks/product/useGpus";
 import { toast } from "sonner";
 import type { Product } from "@/api/types";
@@ -50,37 +51,81 @@ export default function EditGpuForm({
 }) {
   const { mutate: updateGpu, isPending } = useUpdateGpu();
   const { data: brands = [], isLoading: brandsLoading } = useAllBrands();
+  const { data: categories = [], isLoading: categoriesLoading } = useAllCategories();
   const form = useForm<EditGpuFormData>({
     resolver: zodResolver(editGpuSchema),
     defaultValues: {
-      name: product.name,
-      price: product.price,
-      description: product.description,
-      stock: product.stock,
-      brandId: product.brandId ?? undefined,
-      categoryId: product.categoryId ?? undefined,
-      vramGB: product.vramGB ?? undefined,
-      tdpW: product.tdpW ?? undefined,
-      recommendedPSUWatt: product.recommendedPSUWatt ?? undefined,
-      performanceTier: product.performanceTier ?? undefined,
-      lengthMm: product.lengthMm ?? undefined,
+      name: product.name || "",
+      price: product.price || 0,
+      description: product.description || "",
+      stock: product.stock || 0,
+      brandId: undefined,
+      categoryId: undefined,
+      vramGB: undefined,
+      tdpW: undefined,
+      recommendedPSUWatt: undefined,
+      performanceTier: undefined,
+      lengthMm: undefined,
     },
   });
 
   useEffect(() => {
-    const current = form.getValues("brandId");
-    if ((current === undefined || current === null) && brands.length > 0) {
-      const idFromProduct = product.brandId;
-      if (typeof idFromProduct === "number" && idFromProduct > 0) {
-        form.setValue("brandId", idFromProduct, { shouldDirty: false });
+    const extendedProduct = product as ProductWithExtendedFields;
+    
+    // Try to get categoryId from product or look it up
+    let categoryId = extendedProduct.categoryId;
+    if ((!categoryId || categoryId < 1) && categories.length > 0) {
+      const categoryName = product.categoryName || product.category || "";
+      if (categoryName) {
+        const found = categories.find(
+          (c) => c.name.trim().toLowerCase() === categoryName.trim().toLowerCase()
+        );
+        if (found) {
+          categoryId = found.id;
+        }
+      }
+    }
+    
+    form.reset({
+      name: product.name || "",
+      price: product.price || 0,
+      description: product.description || "",
+      stock: product.stock || 0,
+      brandId: extendedProduct.brandId ?? undefined,
+      categoryId: categoryId ?? undefined,
+      vramGB: extendedProduct.vramGB ?? undefined,
+      tdpW: extendedProduct.tdpW ?? undefined,
+      recommendedPSUWatt: extendedProduct.recommendedPSUWatt ?? undefined,
+      performanceTier: extendedProduct.performanceTier ?? undefined,
+      lengthMm: extendedProduct.lengthMm ?? undefined,
+    });
+  }, [product, form, categories]);
+
+  useEffect(() => {
+    if (brands.length === 0) return;
+
+    const extendedProduct = product as ProductWithExtendedFields;
+    const currentBrandId = form.getValues("brandId");
+
+    if (!currentBrandId || currentBrandId < 1) {
+      if (
+        typeof extendedProduct.brandId === "number" &&
+        extendedProduct.brandId > 0
+      ) {
+        form.setValue("brandId", extendedProduct.brandId, {
+          shouldDirty: false,
+        });
         return;
       }
-      const name = (product.brandName || product.brand || "")
+
+      const brandName = (product.brandName || product.brand || "")
         .toString()
         .trim()
         .toLowerCase();
-      if (name) {
-        const found = brands.find((b) => b.name.trim().toLowerCase() === name);
+      if (brandName) {
+        const found = brands.find(
+          (b) => b.name.trim().toLowerCase() === brandName
+        );
         if (found) {
           form.setValue("brandId", found.id, { shouldDirty: false });
         }
@@ -89,17 +134,42 @@ export default function EditGpuForm({
   }, [brands, form, product]);
 
   useEffect(() => {
-    const current = form.getValues("categoryId");
-    if (current === undefined || current === null) {
-      const idFromProduct = product.categoryId;
-      if (typeof idFromProduct === "number" && idFromProduct > 0) {
-        form.setValue("categoryId", idFromProduct, { shouldDirty: false });
+    if (categories.length === 0) return;
+    
+    const extendedProduct = product as ProductWithExtendedFields;
+    const currentCategoryId = form.getValues("categoryId");
+
+    if (!currentCategoryId || currentCategoryId < 1) {
+      // First try to get categoryId directly from product
+      if (
+        typeof extendedProduct.categoryId === "number" &&
+        extendedProduct.categoryId > 0
+      ) {
+        form.setValue("categoryId", extendedProduct.categoryId, {
+          shouldDirty: false,
+        });
+        return;
+      }
+      
+      // If not found, look up by categoryName
+      const categoryName = product.categoryName || product.category || "";
+      if (categoryName) {
+        const found = categories.find(
+          (c) => c.name.trim().toLowerCase() === categoryName.trim().toLowerCase()
+        );
+        if (found) {
+          form.setValue("categoryId", found.id, { shouldDirty: false });
+        }
       }
     }
-  }, [form, product]);
+  }, [categories, form, product]);
 
   const onSubmit = (data: EditGpuFormData) => {
     const id = Number(product.id);
+    if (isNaN(id) || id < 1) {
+      toast.error("Invalid product ID");
+      return;
+    }
     if (!data.brandId || data.brandId < 1) {
       form.setError("brandId", { message: "Brand is required" });
       toast.error("Brand is required");

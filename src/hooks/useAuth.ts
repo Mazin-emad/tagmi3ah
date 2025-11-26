@@ -8,7 +8,6 @@ import type {
   AuthRequireConfirmRequest,
   AuthResetPasswordRequest,
 } from "@/api/types";
-import type { ApiError } from "@/api/types";
 
 /**
  * Hook to register a new user

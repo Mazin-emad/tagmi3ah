@@ -21,6 +21,7 @@ export async function clearAuthState(): Promise<void> {
     isLoggingOut = true;
     await authApi.logout();
   } catch {
+    console.log("Error logging out");
   } finally {
     isLoggingOut = false;
   }

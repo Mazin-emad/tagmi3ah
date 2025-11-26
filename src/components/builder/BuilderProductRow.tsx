@@ -26,7 +26,8 @@ export function BuilderProductRow({ product }: BuilderProductRowProps) {
   const categoryName = product.categoryName || "";
   const productId =
     typeof product.id === "string" ? parseInt(product.id, 10) : product.id;
-  const imageUrl = (product as { imageUrl?: string }).imageUrl || product.image;
+  const imageUrl =
+    (product as { imageUrl?: string }).imageUrl || product.imageUrl;
   const brandName = product.brandName || "";
 
   const handleDecrease = () => {
@@ -123,7 +124,7 @@ export function BuilderProductRow({ product }: BuilderProductRowProps) {
             >
               <MinusIcon className="h-3.5 w-3.5" />
             </Button>
-            <span className="text-sm font-medium min-w-[1.5rem] text-center">
+            <span className="text-sm font-medium min-w-6 text-center">
               {quantity}
             </span>
             <Button
