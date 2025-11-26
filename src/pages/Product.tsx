@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import { ProductDetails } from "@/components/product/ProductDetails";
 import { useProductData } from "@/hooks/useProductData";
-import { formatCurrency, getBrand, getImage } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { buildProductSpecs } from "@/lib/productSpecs";
 import { normalizeProductData } from "@/lib/productUtils";
 import type { Product } from "@/api/types";
@@ -50,7 +50,7 @@ export default function ProductPage() {
       brand={normalized.brand}
       price={formatCurrency(normalized.price)}
       description={normalized.description}
-      image={normalized.image}
+      image={normalized.imageUrl}
       specs={specs}
       stock={normalized.stock}
     >

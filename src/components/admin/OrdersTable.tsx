@@ -1,9 +1,5 @@
 import { useState } from "react";
-import {
-  useGetAllOrders,
-  useUpdateOrder,
-  useGetOrdersByUserId,
-} from "@/hooks";
+import { useGetAllOrders, useUpdateOrder, useGetOrdersByUserId } from "@/hooks";
 import { useAllUsers } from "@/hooks/useUsers";
 import { LoadingComponent } from "@/components/global/LoadingComponents";
 import { ErrorComponent } from "@/components/global/ErrorComponents";
@@ -28,10 +24,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Select } from "@/components/ui/select";
-import type { SelectOption } from "@/components/ui/select";
 import { toast } from "sonner";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
-import type { OrderDto, OrderStatusRequest } from "@/api/types";
+import type {
+  OrderDto,
+  OrderStatus,
+  OrderStatusRequest,
+  PaymentStatus,
+} from "@/api/types";
 
 export default function OrdersTable() {
   const { data: orders = [], isLoading, error, refetch } = useGetAllOrders();
@@ -40,14 +40,10 @@ export default function OrdersTable() {
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
   const [orderToUpdate, setOrderToUpdate] = useState<OrderDto | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
-  const { data: userOrders = [] } = useGetOrdersByUserId(
-    selectedUserId ?? 0
-  );
+  const { data: userOrders = [] } = useGetOrdersByUserId(selectedUserId ?? 0);
 
   // Create user lookup map
-  const userById = new Map(
-    users.map((user) => [Number(user.id), user])
-  );
+  const userById = new Map(users.map((user) => [Number(user.id), user]));
 
   const formatDate = (dateString: string) => {
     try {
@@ -99,8 +95,16 @@ export default function OrdersTable() {
     if (!orderToUpdate) return;
 
     const updateData: OrderStatusRequest = {
-      orderStatus: orderStatus as "PENDING" | "CANCELED" | "CONFIRMED" | "DELIVERED",
-      paymentStatus: paymentStatus as "PAID" | "CANCELED" | "FAILED" | "PENDING",
+      orderStatus: orderStatus as
+        | "PENDING"
+        | "CANCELED"
+        | "CONFIRMED"
+        | "DELIVERED",
+      paymentStatus: paymentStatus as
+        | "PAID"
+        | "CANCELED"
+        | "FAILED"
+        | "PENDING",
     };
 
     updateOrder(
@@ -139,7 +143,8 @@ export default function OrdersTable() {
                     {user?.name || user?.email || "N/A"}
                   </p>
                   <p>
-                    <span className="font-medium">Email:</span> {user?.email || "N/A"}
+                    <span className="font-medium">Email:</span>{" "}
+                    {user?.email || "N/A"}
                   </p>
                   <p>
                     <span className="font-medium">Phone:</span>{" "}
@@ -151,7 +156,8 @@ export default function OrdersTable() {
                 <h4 className="font-semibold mb-2">Order Information</h4>
                 <div className="space-y-1 text-sm">
                   <p>
-                    <span className="font-medium">Order ID:</span> #{order.orderId}
+                    <span className="font-medium">Order ID:</span> #
+                    {order.orderId}
                   </p>
                   <p>
                     <span className="font-medium">Order Date:</span>{" "}
@@ -184,7 +190,9 @@ export default function OrdersTable() {
                           className="w-10 h-10 object-cover rounded"
                         />
                         <div>
-                          <p className="font-medium text-xs">{item.product.name}</p>
+                          <p className="font-medium text-xs">
+                            {item.product.name}
+                          </p>
                           <p className="text-muted-foreground text-xs">
                             Qty: {item.quantity}
                           </p>
@@ -259,7 +267,9 @@ export default function OrdersTable() {
             <Select
               value={selectedUserId?.toString() || ""}
               onChange={(e) =>
-                setSelectedUserId(e.target.value ? Number(e.target.value) : null)
+                setSelectedUserId(
+                  e.target.value ? Number(e.target.value) : null
+                )
               }
               options={[
                 { value: "", label: "All Users" },
@@ -313,9 +323,7 @@ export default function OrdersTable() {
                   {displayOrders.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={10} className="text-center py-8">
-                        <p className="text-muted-foreground">
-                          No orders found
-                        </p>
+                        <p className="text-muted-foreground">No orders found</p>
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -348,14 +356,18 @@ export default function OrdersTable() {
                               #{order.orderId}
                             </TableCell>
                             <TableCell>
-                              {user?.name || user?.email || `User #${order.userId}`}
+                              {user?.name ||
+                                user?.email ||
+                                `User #${order.userId}`}
                             </TableCell>
                             <TableCell className="whitespace-nowrap">
                               {formatDate(order.orderDate)}
                             </TableCell>
                             <TableCell>
                               <Badge
-                                variant={getStatusBadgeVariant(order.orderStatus)}
+                                variant={getStatusBadgeVariant(
+                                  order.orderStatus
+                                )}
                               >
                                 {order.orderStatus}
                               </Badge>
@@ -426,7 +438,7 @@ export default function OrdersTable() {
                 onChange={(e) =>
                   setOrderToUpdate({
                     ...orderToUpdate!,
-                    orderStatus: e.target.value as any,
+                    orderStatus: e.target.value as OrderStatus,
                   })
                 }
                 options={[
@@ -446,7 +458,7 @@ export default function OrdersTable() {
                 onChange={(e) =>
                   setOrderToUpdate({
                     ...orderToUpdate!,
-                    paymentStatus: e.target.value as any,
+                    paymentStatus: e.target.value as PaymentStatus,
                   })
                 }
                 options={[
@@ -484,4 +496,3 @@ export default function OrdersTable() {
     </div>
   );
 }
-

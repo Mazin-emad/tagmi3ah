@@ -10,23 +10,11 @@ export type ProductCategory =
   | "PCCASE"
   | "PC CASE";
 
-interface BaseProduct {
-  id: number | string;
-  name: string;
-  price: number;
-  description?: string;
-  brandName?: string;
-  brand?: string;
-  imageUrl?: string;
-  image?: string;
-  categoryName?: string;
-  stock?: number;
-  [key: string]: unknown;
-}
-
-export function detectProductCategory(product: BaseProduct): ProductCategory | null {
+export function detectProductCategory(
+  product: Product
+): ProductCategory | null {
   const categoryName = product.categoryName?.toUpperCase();
-  
+
   if (categoryName === "CPU" || "cores" in product || "threads" in product) {
     return "CPU";
   }
@@ -53,20 +41,19 @@ export function detectProductCategory(product: BaseProduct): ProductCategory | n
   ) {
     return "PCCASE";
   }
-  
+
   return null;
 }
 
-export function normalizeProductData<T extends BaseProduct>(product: T) {
+export function normalizeProductData<T extends Product>(product: T) {
   return {
     id: product.id,
     name: product.name,
     price: product.price,
     description: product.description ?? "",
     brand: product.brandName ?? product.brand ?? "",
-    image: product.imageUrl ?? product.image ?? "",
+    imageUrl: product.imageUrl ?? "",
     categoryName: product.categoryName,
     stock: product.stock,
   };
 }
-

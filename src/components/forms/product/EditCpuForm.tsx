@@ -52,7 +52,7 @@ export default function EditCpuForm({
 }) {
   const { mutate: updateCpu, isPending } = useUpdateCpu();
   const { data: brands = [], isLoading: brandsLoading } = useAllBrands();
-  const { data: categories = [], isLoading: categoriesLoading } = useAllCategories();
+  const { data: categories = [] } = useAllCategories();
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -73,28 +73,29 @@ export default function EditCpuForm({
 
   useEffect(() => {
     const extendedProduct = product as ProductWithExtendedFields;
-    
+
     // Try to get categoryId from product or look it up
-    let categoryId = extendedProduct.categoryId;
+    let categoryId: number | undefined = extendedProduct.categoryId;
     if ((!categoryId || categoryId < 1) && categories.length > 0) {
       const categoryName = product.categoryName || product.category || "";
       if (categoryName) {
         const found = categories.find(
-          (c) => c.name.trim().toLowerCase() === categoryName.trim().toLowerCase()
+          (c) =>
+            c.name.trim().toLowerCase() === categoryName.trim().toLowerCase()
         );
         if (found) {
           categoryId = found.id;
         }
       }
     }
-    
+
     form.reset({
       name: product.name || "",
       price: product.price || 0,
       description: product.description || "",
       stock: product.stock || 0,
       brandId: extendedProduct.brandId ?? undefined,
-      categoryId: categoryId ?? undefined,
+      categoryId: categoryId,
       cores: extendedProduct.cores ?? undefined,
       threads: extendedProduct.threads ?? undefined,
       baseClockGHz: extendedProduct.baseClockGHz ?? undefined,
@@ -138,7 +139,7 @@ export default function EditCpuForm({
 
   useEffect(() => {
     if (categories.length === 0) return;
-    
+
     const extendedProduct = product as ProductWithExtendedFields;
     const currentCategoryId = form.getValues("categoryId");
 
@@ -153,12 +154,13 @@ export default function EditCpuForm({
         });
         return;
       }
-      
+
       // If not found, look up by categoryName
       const categoryName = product.categoryName || product.category || "";
       if (categoryName) {
         const found = categories.find(
-          (c) => c.name.trim().toLowerCase() === categoryName.trim().toLowerCase()
+          (c) =>
+            c.name.trim().toLowerCase() === categoryName.trim().toLowerCase()
         );
         if (found) {
           form.setValue("categoryId", found.id, { shouldDirty: false });
@@ -170,7 +172,7 @@ export default function EditCpuForm({
   const onSubmit = (data: FormData) => {
     console.log("Form submitted with data:", data);
     console.log("Product ID:", product.id);
-    
+
     const id = Number(product.id);
     if (isNaN(id) || id < 1) {
       toast.error("Invalid product ID");
@@ -189,7 +191,7 @@ export default function EditCpuForm({
       console.error("Category ID missing:", data.categoryId);
       return;
     }
-    
+
     console.log("Calling updateCpu with:", { id, data });
     updateCpu(
       {
@@ -227,12 +229,13 @@ export default function EditCpuForm({
               };
             };
           };
-          const errorMessage = 
-            error?.message || 
-            error?.response?.data?.message || 
+          const errorMessage =
+            error?.message ||
+            error?.response?.data?.message ||
             "Failed to update CPU";
-          const fieldErrors = error?.fieldErrors || error?.response?.data?.fieldErrors;
-          
+          const fieldErrors =
+            error?.fieldErrors || error?.response?.data?.fieldErrors;
+
           if (fieldErrors) {
             Object.entries(fieldErrors).forEach(([field, message]) => {
               form.setError(field as keyof FormData, {
@@ -273,7 +276,10 @@ export default function EditCpuForm({
     <Card>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit, onError)}
+            className="space-y-4"
+          >
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 name="name"
@@ -497,11 +503,13 @@ export default function EditCpuForm({
               <div className="text-sm text-destructive mt-2 p-2 bg-destructive/10 rounded">
                 <p className="font-semibold">Form Errors:</p>
                 <ul className="list-disc list-inside">
-                  {Object.entries(form.formState.errors).map(([field, error]) => (
-                    <li key={field}>
-                      {field}: {error?.message as string}
-                    </li>
-                  ))}
+                  {Object.entries(form.formState.errors).map(
+                    ([field, error]) => (
+                      <li key={field}>
+                        {field}: {error?.message as string}
+                      </li>
+                    )
+                  )}
                 </ul>
               </div>
             )}

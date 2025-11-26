@@ -10,7 +10,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface ProductPaginationProps {
-  currentPage: number; // 0-indexed
+  currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
 }

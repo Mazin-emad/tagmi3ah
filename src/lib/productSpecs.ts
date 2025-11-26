@@ -11,11 +11,12 @@ import type { RamKitResponse } from "@/api/product/ramkits";
 import type { PsuResponse } from "@/api/product/psus";
 import type { PcCaseResponse } from "@/api/product/pccases";
 import { detectProductCategory } from "./productUtils";
+import type { Product } from "@/types";
 
 type SpecItem = { label: string; value: string };
 
-export function buildProductSpecs(product: unknown): SpecItem[] {
-  const category = detectProductCategory(product as Record<string, unknown>);
+export function buildProductSpecs(product: Product): SpecItem[] {
+  const category = detectProductCategory(product);
 
   switch (category) {
     case "CPU":
@@ -36,4 +37,3 @@ export function buildProductSpecs(product: unknown): SpecItem[] {
       return [];
   }
 }
-

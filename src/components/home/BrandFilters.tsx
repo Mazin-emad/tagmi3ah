@@ -24,7 +24,7 @@ export function BrandFilters({ brands, onBrandToggle }: BrandFiltersProps) {
       name="brand"
       render={() => (
         <FormItem className="flex flex-row items-center flex-wrap gap-3">
-          {brands?.content.map((item) => (
+          {brands?.map((item) => (
             <FormField
               key={item.id}
               control={form.control}
@@ -43,7 +43,7 @@ export function BrandFilters({ brands, onBrandToggle }: BrandFiltersProps) {
                           } else {
                             field.onChange(
                               currentValues.filter(
-                                (value) => value !== item.name
+                                (value: string) => value !== item.name
                               )
                             );
                           }
@@ -65,4 +65,3 @@ export function BrandFilters({ brands, onBrandToggle }: BrandFiltersProps) {
     />
   );
 }
-

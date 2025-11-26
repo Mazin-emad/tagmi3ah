@@ -42,7 +42,7 @@ export default function SearchSection() {
     form.setValue("category", categoryParam);
     form.setValue("brand", brandsArray);
     form.setValue("search", searchParam);
-  }, [categoryParam, brandParam, searchParam, form]);
+  }, [categoryParam, brandParam, searchParam, form, brandsArray]);
 
   const updateURLParams = (data: z.infer<typeof FormSchema>) => {
     const newSearchParams = new URLSearchParams(searchParams);
@@ -79,7 +79,7 @@ export default function SearchSection() {
     updateURLParams({ ...form.getValues(), category: newCategory });
   };
 
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleSearchChange = (value: string) => {
     form.setValue("search", value);
@@ -138,13 +138,13 @@ export default function SearchSection() {
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="flex w-full gap-4 flex-wrap">
               <CategoryDropdown
-                selectedCategory={selectedCategory}
-                categories={categories}
+                selectedCategory={selectedCategory || ""}
+                categories={categories?.content || []}
                 onSelect={handleCategorySelect}
               />
               <SearchInput
                 onSearchChange={handleSearchChange}
-                onSubmit={onSubmit}
+                onSubmit={() => onSubmit(form.getValues())}
               />
               <Button variant="default" type="submit">
                 Search
@@ -161,7 +161,10 @@ export default function SearchSection() {
               )}
             </div>
             <div className="flex justify-center pt-4">
-              <BrandFilters brands={brands} onBrandToggle={handleBrandToggle} />
+              <BrandFilters
+                brands={brands?.content || []}
+                onBrandToggle={handleBrandToggle}
+              />
             </div>
           </form>
         </Form>

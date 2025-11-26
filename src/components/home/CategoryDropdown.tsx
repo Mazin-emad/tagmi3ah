@@ -31,7 +31,7 @@ export function CategoryDropdown({
           <DropdownMenuItem onClick={() => onSelect("All Products")}>
             All Products
           </DropdownMenuItem>
-          {categories?.content.map((category) => (
+          {categories?.map((category) => (
             <DropdownMenuItem
               key={category.id}
               onClick={() => onSelect(category.name)}
@@ -44,4 +44,3 @@ export function CategoryDropdown({
     </DropdownMenu>
   );
 }
-

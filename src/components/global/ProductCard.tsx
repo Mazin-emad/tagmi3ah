@@ -29,7 +29,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <CardTitle className="text-sm min-h-0">
           <Link
             to={`/products/${product.id}`}
-            className="hover:text-primary transition-colors break-words hyphens-auto"
+            className="hover:text-primary transition-colors wrap-break-words hyphens-auto"
             title={product.name}
           >
             {product.name}

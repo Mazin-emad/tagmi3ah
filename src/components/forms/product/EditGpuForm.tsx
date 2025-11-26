@@ -51,7 +51,7 @@ export default function EditGpuForm({
 }) {
   const { mutate: updateGpu, isPending } = useUpdateGpu();
   const { data: brands = [], isLoading: brandsLoading } = useAllBrands();
-  const { data: categories = [], isLoading: categoriesLoading } = useAllCategories();
+  const { data: categories = [] } = useAllCategories();
   const form = useForm<EditGpuFormData>({
     resolver: zodResolver(editGpuSchema),
     defaultValues: {
@@ -71,28 +71,29 @@ export default function EditGpuForm({
 
   useEffect(() => {
     const extendedProduct = product as ProductWithExtendedFields;
-    
+
     // Try to get categoryId from product or look it up
-    let categoryId = extendedProduct.categoryId;
+    let categoryId: number | undefined = extendedProduct.categoryId;
     if ((!categoryId || categoryId < 1) && categories.length > 0) {
       const categoryName = product.categoryName || product.category || "";
       if (categoryName) {
         const found = categories.find(
-          (c) => c.name.trim().toLowerCase() === categoryName.trim().toLowerCase()
+          (c) =>
+            c.name.trim().toLowerCase() === categoryName.trim().toLowerCase()
         );
         if (found) {
           categoryId = found.id;
         }
       }
     }
-    
+
     form.reset({
       name: product.name || "",
       price: product.price || 0,
       description: product.description || "",
       stock: product.stock || 0,
       brandId: extendedProduct.brandId ?? undefined,
-      categoryId: categoryId ?? undefined,
+      categoryId: categoryId,
       vramGB: extendedProduct.vramGB ?? undefined,
       tdpW: extendedProduct.tdpW ?? undefined,
       recommendedPSUWatt: extendedProduct.recommendedPSUWatt ?? undefined,
@@ -135,7 +136,7 @@ export default function EditGpuForm({
 
   useEffect(() => {
     if (categories.length === 0) return;
-    
+
     const extendedProduct = product as ProductWithExtendedFields;
     const currentCategoryId = form.getValues("categoryId");
 
@@ -150,12 +151,13 @@ export default function EditGpuForm({
         });
         return;
       }
-      
+
       // If not found, look up by categoryName
       const categoryName = product.categoryName || product.category || "";
       if (categoryName) {
         const found = categories.find(
-          (c) => c.name.trim().toLowerCase() === categoryName.trim().toLowerCase()
+          (c) =>
+            c.name.trim().toLowerCase() === categoryName.trim().toLowerCase()
         );
         if (found) {
           form.setValue("categoryId", found.id, { shouldDirty: false });

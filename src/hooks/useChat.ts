@@ -23,12 +23,13 @@ const loadChatHistory = (): ChatMessage[] => {
 /**
  * Save chat history to localStorage
  */
-  const saveChatHistory = (messages: ChatMessage[]): void => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-    } catch {
-    }
-  };
+const saveChatHistory = (messages: ChatMessage[]): void => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+  } catch {
+    console.log("Failed to save chat history");
+  }
+};
 
 /**
  * Hook for managing chat state and AI interactions
@@ -137,12 +138,14 @@ export function useChat() {
             ? err
             : new Error("Failed to send message. Please try again.");
 
-
         setError(error.message);
 
         const errorMessage = error.message.toLowerCase();
 
-        if (errorMessage.includes("api key") || errorMessage.includes("configuration")) {
+        if (
+          errorMessage.includes("api key") ||
+          errorMessage.includes("configuration")
+        ) {
           toast.error("API Configuration Error", {
             description:
               "Please configure your Cohere API key in the .env file",
@@ -189,7 +192,8 @@ export function useChat() {
           });
         } else if (errorMessage.includes("temporarily unavailable")) {
           toast.error("Service Unavailable", {
-            description: "The AI service is temporarily down. Please try again later",
+            description:
+              "The AI service is temporarily down. Please try again later",
             duration: 5000,
           });
         } else {
