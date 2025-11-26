@@ -14,9 +14,9 @@ export function ProductImage({
   loading = "lazy",
 }: ProductImageProps) {
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden p-0">
       <CardContent className="p-0">
-        <div className="aspect-square w-full rounded-lg overflow-hidden bg-muted/40">
+        <div className="w-full rounded-lg overflow-hidden bg-muted/40">
           <img
             src={src}
             alt={alt}
@@ -28,4 +28,3 @@ export function ProductImage({
     </Card>
   );
 }
-

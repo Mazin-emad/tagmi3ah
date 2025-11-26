@@ -20,7 +20,7 @@ export default function ProductPage() {
         brand=""
         price="$0.00"
         description=""
-        image="https://picsum.photos/200"
+        image="https://picsum.photos/600/800"
         specs={[]}
         stock={0}
       />
@@ -34,7 +34,7 @@ export default function ProductPage() {
         brand=""
         price="$0.00"
         description=""
-        image="https://picsum.photos/200"
+        image="https://picsum.photos/600/800"
         specs={[]}
         stock={0}
       />
@@ -50,7 +50,11 @@ export default function ProductPage() {
       brand={normalized.brand}
       price={formatCurrency(normalized.price)}
       description={normalized.description}
-      image={normalized.imageUrl}
+      image={
+        normalized.imageUrl
+          ? normalized.imageUrl
+          : "https://picsum.photos/900/900"
+      }
       specs={specs}
       stock={normalized.stock}
     >

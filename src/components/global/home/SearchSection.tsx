@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
@@ -23,7 +23,10 @@ export default function SearchSection() {
 
   const categoryParam = searchParams.get("category") || "";
   const brandParam = searchParams.get("brand");
-  const brandsArray = brandParam ? brandParam.split(",").filter(Boolean) : [];
+  const brandsArray = useMemo(
+    () => (brandParam ? brandParam.split(",").filter(Boolean) : []),
+    [brandParam]
+  );
   const searchParam = searchParams.get("search") || "";
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -39,10 +42,23 @@ export default function SearchSection() {
   const { data: brands } = useBrandsPaged({ page: 0, size: 100 });
 
   useEffect(() => {
-    form.setValue("category", categoryParam);
-    form.setValue("brand", brandsArray);
-    form.setValue("search", searchParam);
-  }, [categoryParam, brandParam, searchParam, form, brandsArray]);
+    const currentCategory = form.getValues("category");
+    const currentBrand = form.getValues("brand") || [];
+    const currentSearch = form.getValues("search") || "";
+
+    if (currentCategory !== categoryParam) {
+      form.setValue("category", categoryParam, { shouldDirty: false });
+    }
+    if (
+      JSON.stringify(currentBrand.sort()) !== JSON.stringify(brandsArray.sort())
+    ) {
+      form.setValue("brand", brandsArray, { shouldDirty: false });
+    }
+    if (currentSearch !== searchParam) {
+      form.setValue("search", searchParam, { shouldDirty: false });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryParam, brandParam, searchParam, brandsArray]);
 
   const updateURLParams = (data: z.infer<typeof FormSchema>) => {
     const newSearchParams = new URLSearchParams(searchParams);
